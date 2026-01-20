@@ -19,11 +19,33 @@ O Pomodoro Timer é uma aplicação web que ajuda você a gerenciar seu tempo us
 
 ## 🚀 Como Usar
 
+### Para Usuários
 1. Abra o arquivo `index.html` no seu navegador
 2. Clique em "Iniciar" para começar um pomodoro
 3. Trabalhe focado durante os 25 minutos
 4. Quando o timer terminar, faça uma pausa
 5. Após 4 pomodoros completos, o sistema sugere uma pausa longa
+
+### Para Desenvolvedores
+
+#### Instalação
+```bash
+npm install
+```
+
+#### Compilação TypeScript
+```bash
+npm run build
+```
+
+Isso compila `script.ts` para `script.js`.
+
+#### Modo Watch (Desenvolvimento)
+```bash
+npm run watch
+```
+
+Compila automaticamente quando há mudanças no TypeScript.
 
 ## ⚙️ Configurações
 
@@ -46,7 +68,8 @@ A técnica Pomodoro consiste em:
 
 - HTML5
 - CSS3 (com animações e gradientes)
-- JavaScript (ES6+)
+- **TypeScript** (com tipagem forte)
+- JavaScript (ES6+) - compilado do TypeScript
 - LocalStorage para persistência de dados
 - Web Notifications API
 - Web Audio API
