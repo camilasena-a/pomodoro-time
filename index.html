@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer - Foco e Produtividade</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Barra superior com utilitários -->
+    <div class="top-bar">
+        <button class="icon-btn" id="theme-toggle" aria-label="Alternar tema claro/escuro">
+            <span class="icon" id="theme-icon">🌙</span>
+            <span class="tooltip">Alternar tema</span>
+        </button>
+        <button class="icon-btn" id="settings-toggle" aria-label="Abrir configurações">
+            <span class="icon">⚙️</span>
+            <span class="tooltip">Configurações</span>
+        </button>
+        <button class="icon-btn" id="stats-toggle" aria-label="Ver estatísticas">
+            <span class="icon">📊</span>
+            <span class="tooltip">Estatísticas</span>
+        </button>
+    </div>
+
+    <!-- Container principal -->
+    <div class="container">
+        <!-- Timer central -->
+        <div class="timer-wrapper">
+            <div class="progress-ring">
+                <svg class="progress-ring-svg" viewBox="0 0 280 280" preserveAspectRatio="xMidYMid meet">
+                    <circle class="progress-ring-circle-bg" cx="140" cy="140" r="130"></circle>
+                    <circle class="progress-ring-circle" cx="140" cy="140" r="130"></circle>
+                </svg>
+                <div class="time-wrapper">
+                    <div class="time" id="timer" aria-live="polite">25:00</div>
+                </div>
+            </div>
+            <div class="session-info">
+                <span id="session-type">Trabalho</span>
+                <span class="separator">•</span>
+                <span>Sessão <span id="session-count">1</span></span>
+            </div>
+        </div>
+
+        <!-- Botões laterais esquerda (controles principais) -->
+        <div class="side-controls side-controls-left">
+            <button class="side-btn" id="start-btn" aria-label="Iniciar timer">
+                <span class="icon">▶</span>
+                <span class="tooltip">Iniciar</span>
+            </button>
+            <button class="side-btn" id="pause-btn" style="display: none;" aria-label="Pausar timer">
+                <span class="icon">⏸</span>
+                <span class="tooltip">Pausar</span>
+            </button>
+            <button class="side-btn" id="reset-btn" aria-label="Resetar timer">
+                <span class="icon">⏹</span>
+                <span class="tooltip">Resetar</span>
+            </button>
+        </div>
+
+        <!-- Botões laterais direita (presets) -->
+        <div class="side-controls side-controls-right">
+            <button class="side-btn preset-btn" data-minutes="25" aria-label="Pomodoro 25 minutos">
+                <span class="icon">25</span>
+                <span class="tooltip">Pomodoro (25min)</span>
+            </button>
+            <button class="side-btn preset-btn" data-minutes="5" aria-label="Pausa curta 5 minutos">
+                <span class="icon">5</span>
+                <span class="tooltip">Pausa Curta (5min)</span>
+            </button>
+            <button class="side-btn preset-btn" data-minutes="15" aria-label="Pausa longa 15 minutos">
+                <span class="icon">15</span>
+                <span class="tooltip">Pausa Longa (15min)</span>
+            </button>
+        </div>
+
+        <!-- Estatísticas discretas (canto inferior direito) -->
+        <div class="stats-minimal" id="stats-minimal">
+            <div class="stat-minimal-item">
+                <span class="stat-value" id="completed-pomodoros">0</span>
+                <span class="stat-label">Pomodoros</span>
+            </div>
+            <div class="stat-minimal-item">
+                <span class="stat-value" id="total-time">0h</span>
+                <span class="stat-label">Tempo Total</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Configurações -->
+    <div class="modal" id="settings-modal" role="dialog" aria-labelledby="settings-title" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="settings-title">Configurações</h2>
+                <button class="icon-btn modal-close" aria-label="Fechar configurações">
+                    <span class="icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="work-duration">Duração do Trabalho (minutos)</label>
+                    <input type="number" id="work-duration" min="1" max="60" value="25">
+                </div>
+                <div class="setting-item">
+                    <label for="short-break">Pausa Curta (minutos)</label>
+                    <input type="number" id="short-break" min="1" max="30" value="5">
+                </div>
+                <div class="setting-item">
+                    <label for="long-break">Pausa Longa (minutos)</label>
+                    <input type="number" id="long-break" min="1" max="60" value="15">
+                </div>
+                <div class="setting-item">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="sound-notification" checked>
+                        <span>Notificação sonora</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop" aria-label="Fechar modal"></div>
+    </div>
+
+    <!-- Modal de Estatísticas -->
+    <div class="modal" id="stats-modal" role="dialog" aria-labelledby="stats-title" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="stats-title">Estatísticas</h2>
+                <button class="icon-btn modal-close" aria-label="Fechar estatísticas">
+                    <span class="icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="stat-card-full">
+                    <div class="stat-value-large" id="stats-completed-pomodoros">0</div>
+                    <div class="stat-label-large">Pomodoros Completos</div>
+                </div>
+                <div class="stat-card-full">
+                    <div class="stat-value-large" id="stats-total-time">0h</div>
+                    <div class="stat-label-large">Tempo Total Focado</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop" aria-label="Fechar modal"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
