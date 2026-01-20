@@ -4,3 +4,7 @@ node_modules/
 *.d.ts.map
 .DS_Store
 dist/
+
+# Manter script.js no repositório (necessário para GitHub Pages)
+# Não ignorar script.js
+!script.js
