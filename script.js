@@ -41,6 +41,15 @@ class PomodoroTimer {
         this.themeToggle = document.getElementById('theme-toggle');
         this.themeIcon = document.getElementById('theme-icon');
         this.progressCircle = document.querySelector('.progress-ring-circle');
+        const progressCircleBg = document.querySelector('.progress-ring-circle-bg');
+        
+        // Aplicar cor vermelha tomate imediatamente em ambos os círculos
+        if (this.progressCircle) {
+            this.progressCircle.style.stroke = '#FF6347';
+        }
+        if (progressCircleBg) {
+            progressCircleBg.style.stroke = '#FF6347';
+        }
         
         // Modais
         this.settingsModal = document.getElementById('settings-modal');
@@ -382,11 +391,13 @@ class PomodoroTimer {
             this.progressCircle.style.strokeDashoffset = offset;
         }
         
-        // Mudar cor baseado no tipo de sessão
-        if (this.currentSessionType === 'work') {
-            this.progressCircle.style.stroke = 'var(--primary-color)';
-        } else {
-            this.progressCircle.style.stroke = 'var(--accent-color)';
+        // SEMPRE aplicar cor vermelha tomate em ambos os círculos
+        this.progressCircle.style.stroke = '#FF6347';
+        
+        // Também atualizar o círculo de fundo
+        const progressCircleBg = document.querySelector('.progress-ring-circle-bg');
+        if (progressCircleBg) {
+            progressCircleBg.style.stroke = '#FF6347';
         }
     }
 
@@ -621,5 +632,16 @@ if ('Notification' in window && Notification.permission === 'default') {
 
 // Inicializar o timer quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
-    new PomodoroTimer();
+    const timer = new PomodoroTimer();
+    
+    // Garantir que a cor vermelha tomate seja aplicada após a inicialização
+    setTimeout(() => {
+        const circles = document.querySelectorAll('.progress-ring-circle, .progress-ring-circle-bg');
+        circles.forEach(circle => {
+            if (circle) {
+                circle.style.stroke = '#FF6347';
+                circle.setAttribute('stroke', '#FF6347');
+            }
+        });
+    }, 50);
 });

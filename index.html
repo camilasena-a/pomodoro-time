@@ -45,8 +45,8 @@
         <div class="timer-wrapper">
             <div class="progress-ring">
                 <svg class="progress-ring-svg" viewBox="0 0 280 280" preserveAspectRatio="xMidYMid meet">
-                    <circle class="progress-ring-circle-bg" cx="140" cy="140" r="130"></circle>
-                    <circle class="progress-ring-circle" cx="140" cy="140" r="130"></circle>
+                    <circle class="progress-ring-circle-bg" cx="140" cy="140" r="130" style="stroke: #FF6347 !important; fill: none;"></circle>
+                    <circle class="progress-ring-circle" cx="140" cy="140" r="130" style="stroke: #FF6347 !important; fill: none;"></circle>
                 </svg>
                 <div class="time-wrapper">
                     <div class="time" id="timer" aria-live="polite">25:00</div>
@@ -225,6 +225,31 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Aplicar cor vermelha tomate imediatamente quando a página carregar
+        function applyTomatoRed() {
+            const circles = document.querySelectorAll('.progress-ring-circle, .progress-ring-circle-bg');
+            circles.forEach(circle => {
+                if (circle) {
+                    circle.style.stroke = '#FF6347';
+                    circle.setAttribute('stroke', '#FF6347');
+                }
+            });
+        }
+        
+        // Aplicar imediatamente
+        applyTomatoRed();
+        
+        // Aplicar quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyTomatoRed);
+        } else {
+            applyTomatoRed();
+        }
+        
+        // Aplicar periodicamente para garantir (caso algo sobrescreva)
+        setInterval(applyTomatoRed, 100);
+    </script>
     <script src="script.js"></script>
     <script>
         // Registrar Service Worker para PWA
@@ -239,6 +264,9 @@
                     });
             });
         }
+        
+        // Aplicar cor vermelha tomate após o script.js carregar
+        setTimeout(applyTomatoRed, 100);
     </script>
 </body>
 </html>

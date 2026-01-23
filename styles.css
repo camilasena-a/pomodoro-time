@@ -107,19 +107,19 @@ body {
 }
 
 .progress-ring-circle-bg {
-    fill: none;
-    stroke: var(--border-subtle);
-    stroke-width: 6;
-    opacity: 0.2;
+    fill: none !important;
+    stroke: #FF6347 !important;
+    stroke-width: 8 !important;
+    opacity: 0.6 !important;
 }
 
 .progress-ring-circle {
-    fill: none;
-    stroke: var(--accent-primary);
-    stroke-width: 6;
-    stroke-linecap: round;
-    stroke-dasharray: 816.814;
-    stroke-dashoffset: 816.814;
+    fill: none !important;
+    stroke: #FF6347 !important;
+    stroke-width: 8 !important;
+    stroke-linecap: round !important;
+    stroke-dasharray: 816.814 !important;
+    stroke-dashoffset: 816.814 !important;
     transition: stroke-dashoffset 0.35s ease, stroke 0.3s ease;
 }
 

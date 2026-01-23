@@ -143,6 +143,15 @@ class PomodoroTimer {
         
         // Progress circle
         this.progressCircle = document.querySelector<SVGCircleElement>('.progress-ring-circle');
+        const progressCircleBg = document.querySelector<SVGCircleElement>('.progress-ring-circle-bg');
+        
+        // Aplicar cor vermelha tomate imediatamente em ambos os círculos
+        if (this.progressCircle) {
+            this.progressCircle.style.stroke = '#FF6347';
+        }
+        if (progressCircleBg) {
+            progressCircleBg.style.stroke = '#FF6347';
+        }
         
         // Modal elements
         this.settingsModal = this.getElementOrThrow('settings-modal');
@@ -531,9 +540,9 @@ class PomodoroTimer {
         this.progressCircle.style.strokeDashoffset = offset.toString();
         
         if (this.currentSessionType === 'work') {
-            this.progressCircle.style.stroke = 'var(--accent-primary)';
+            this.progressCircle.style.stroke = '#FF6347';
         } else {
-            this.progressCircle.style.stroke = 'var(--accent-secondary)';
+            this.progressCircle.style.stroke = '#FF6347';
         }
     }
 

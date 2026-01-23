@@ -505,9 +505,9 @@ class PomodoroTimer {
         
         // Mudar cor baseado no tipo de sessão
         if (this.currentSessionType === 'work') {
-            this.progressCircle.style.stroke = 'var(--primary-color)';
+            this.progressCircle.style.stroke = '#FF6347';
         } else {
-            this.progressCircle.style.stroke = 'var(--accent-color)';
+            this.progressCircle.style.stroke = '#FF6347';
         }
     }
 
