@@ -110,7 +110,7 @@ body {
     fill: none !important;
     stroke: #FF6347 !important;
     stroke-width: 8 !important;
-    opacity: 0.6 !important;
+    opacity: 0.25 !important;
 }
 
 .progress-ring-circle {
@@ -118,8 +118,9 @@ body {
     stroke: #FF6347 !important;
     stroke-width: 8 !important;
     stroke-linecap: round !important;
-    stroke-dasharray: 816.814 !important;
-    stroke-dashoffset: 816.814 !important;
+    /* stroke-dasharray e stroke-dashoffset são controlados pelo JavaScript */
+    stroke-dasharray: 816.814;
+    stroke-dashoffset: 816.814;
     transition: stroke-dashoffset 0.35s ease, stroke 0.3s ease;
 }
 
