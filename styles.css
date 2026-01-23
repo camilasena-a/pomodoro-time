@@ -360,6 +360,25 @@ body {
     transform: scale(0.95);
 }
 
+/* Marca d'água */
+.watermark {
+    position: fixed;
+    bottom: var(--spacing-md);
+    left: var(--spacing-md);
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.4;
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+    letter-spacing: 0.5px;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+}
+
+.watermark:hover {
+    opacity: 0.6;
+}
+
 /* Estatísticas Mínimas */
 .stats-minimal {
     position: fixed;
@@ -628,6 +647,12 @@ body {
         font-size: 56px;
     }
     
+    .watermark {
+        bottom: var(--spacing-sm);
+        left: var(--spacing-sm);
+        font-size: 10px;
+    }
+    
     .stats-minimal {
         position: static;
         flex-direction: row;
@@ -656,6 +681,12 @@ body {
     
     .time {
         font-size: 48px;
+    }
+    
+    .watermark {
+        bottom: var(--spacing-xs);
+        left: var(--spacing-xs);
+        font-size: 9px;
     }
     
     .top-bar {
