@@ -22,6 +22,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["script.ts"],
+  "include": ["script.ts", "src/**/*"],
   "exclude": ["node_modules", "script.js"]
 }

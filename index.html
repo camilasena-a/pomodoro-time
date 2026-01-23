@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Uma plataforma moderna para aplicar a técnica Pomodoro e aumentar sua produtividade">
+    <meta name="theme-color" content="#E74C3C">
     <title>Pomodoro Timer - Foco e Produtividade</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍅</text></svg>">
 </head>
 <body>
     <!-- Barra superior com utilitários -->
@@ -20,6 +24,18 @@
         <button class="icon-btn" id="stats-toggle" aria-label="Ver estatísticas">
             <span class="icon">📊</span>
             <span class="tooltip">Estatísticas</span>
+        </button>
+        <button class="icon-btn" id="tasks-toggle" aria-label="Gerenciar tarefas">
+            <span class="icon">📝</span>
+            <span class="tooltip">Tarefas</span>
+        </button>
+        <button class="icon-btn" id="history-toggle" aria-label="Ver histórico">
+            <span class="icon">📈</span>
+            <span class="tooltip">Histórico</span>
+        </button>
+        <button class="icon-btn" id="achievements-toggle" aria-label="Ver conquistas">
+            <span class="icon">🏆</span>
+            <span class="tooltip">Conquistas</span>
         </button>
     </div>
 
@@ -85,6 +101,14 @@
                 <span class="stat-value" id="total-time">0h</span>
                 <span class="stat-label">Tempo Total</span>
             </div>
+            <div class="stat-minimal-item" id="goal-display" style="display: none;">
+                <span class="stat-value" id="goal-progress">0%</span>
+                <span class="stat-label">Meta Diária</span>
+            </div>
+            <div class="stat-minimal-item" id="streak-display" style="display: none;">
+                <span class="stat-value" id="streak-count">🔥 0</span>
+                <span class="stat-label">Streak</span>
+            </div>
         </div>
     </div>
 
@@ -144,6 +168,77 @@
         <div class="modal-backdrop" aria-label="Fechar modal"></div>
     </div>
 
+    <!-- Modal de Tarefas -->
+    <div class="modal" id="tasks-modal" role="dialog" aria-labelledby="tasks-title" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="tasks-title">Tarefas</h2>
+                <button class="icon-btn modal-close" aria-label="Fechar tarefas">
+                    <span class="icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="task-input-container">
+                    <input type="text" id="new-task-input" placeholder="Nova tarefa..." class="task-input">
+                    <button id="add-task-btn" class="btn-primary">Adicionar</button>
+                </div>
+                <div id="tasks-list" class="tasks-list"></div>
+            </div>
+        </div>
+        <div class="modal-backdrop" aria-label="Fechar modal"></div>
+    </div>
+
+    <!-- Modal de Histórico -->
+    <div class="modal" id="history-modal" role="dialog" aria-labelledby="history-title" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="history-title">Histórico</h2>
+                <button class="icon-btn modal-close" aria-label="Fechar histórico">
+                    <span class="icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="history-chart-container">
+                    <canvas id="history-chart"></canvas>
+                </div>
+                <div id="history-stats" class="history-stats"></div>
+            </div>
+        </div>
+        <div class="modal-backdrop" aria-label="Fechar modal"></div>
+    </div>
+
+    <!-- Modal de Conquistas -->
+    <div class="modal" id="achievements-modal" role="dialog" aria-labelledby="achievements-title" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="achievements-title">Conquistas</h2>
+                <button class="icon-btn modal-close" aria-label="Fechar conquistas">
+                    <span class="icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="achievements-list" class="achievements-list"></div>
+            </div>
+        </div>
+        <div class="modal-backdrop" aria-label="Fechar modal"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registrado com sucesso:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('Falha ao registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
