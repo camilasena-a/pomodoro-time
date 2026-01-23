@@ -46,6 +46,11 @@ class PomodoroTimer {
         // Aplicar cor vermelha tomate imediatamente em ambos os círculos
         if (this.progressCircle) {
             this.progressCircle.style.stroke = '#FF6347';
+            // Inicializar o círculo corretamente no início
+            const radius = this.progressCircle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            this.progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+            this.progressCircle.style.strokeDashoffset = circumference.toString();
         }
         if (progressCircleBg) {
             progressCircleBg.style.stroke = '#FF6347';
@@ -242,6 +247,9 @@ class PomodoroTimer {
         this.pauseBtn.style.display = 'flex';
         document.querySelector('.timer-wrapper').classList.add('timer-running');
 
+        // Garantir que o círculo está inicializado corretamente antes de começar
+        this.updateProgressRing();
+
         // Salvar estado imediatamente
         this.saveSessionState();
 
@@ -377,17 +385,22 @@ class PomodoroTimer {
         if (!this.progressCircle) return;
         
         const totalTime = this.getTotalTimeForCurrentSession();
+        
+        // Calcular o progresso: quanto do tempo total já passou
+        // currentTime começa em totalTime e vai até 0
+        // progress = (totalTime - currentTime) / totalTime
         const elapsed = totalTime - this.currentTime;
         const progress = Math.max(0, Math.min(1, elapsed / totalTime));
         
         const radius = this.progressCircle.r.baseVal.value;
         const circumference = radius * 2 * Math.PI;
         
-        // Calcular o offset: quando progress = 0, offset = circumference (vazio)
-        // quando progress = 1, offset = 0 (completo)
+        // Calcular o offset: quando progress = 0 (início), offset = circumference (círculo vazio)
+        // quando progress = 1 (fim), offset = 0 (círculo completo)
+        // O stroke-dashoffset controla quanto do círculo está visível
         const offset = circumference - (progress * circumference);
         
-        // SEMPRE atualizar o stroke-dasharray e stroke-dashoffset para animação suave
+        // Garantir que o stroke-dasharray está configurado corretamente
         this.progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
         this.progressCircle.style.strokeDashoffset = offset.toString();
         
@@ -398,6 +411,11 @@ class PomodoroTimer {
         const progressCircleBg = document.querySelector('.progress-ring-circle-bg');
         if (progressCircleBg) {
             progressCircleBg.style.stroke = '#FF6347';
+        }
+        
+        // Debug temporário - remover depois
+        if (this.isRunning) {
+            console.log(`⏱️ Tempo total: ${totalTime}s | Tempo restante: ${this.currentTime}s | Tempo decorrido: ${elapsed}s | Progresso: ${(progress * 100).toFixed(1)}% | Offset: ${offset.toFixed(0)}/${circumference.toFixed(0)}`);
         }
     }
 
