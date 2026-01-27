@@ -45,6 +45,10 @@ Este diretório contém templates e descrições detalhadas de issues para o pro
 - `008-otimizar-service-worker.md`
 - `009-icones-pwa.md`
 - `010-mensagens-motivacionais.md`
+- `017-limpar-console-logs.md`
+- `019-dark-mode-automatico.md`
+- `020-wake-lock-api.md`
+- `023-testes-e2e.md`
 
 ### 🟢 Baixa Prioridade
 - `011-eslint-prettier.md`
@@ -52,9 +56,21 @@ Este diretório contém templates e descrições detalhadas de issues para o pro
 - `013-tratamento-erros.md`
 - `014-i18n.md`
 - `015-gestos-touch.md`
+- `018-meta-tags-seo.md`
+- `021-web-share-api.md`
+- `022-documentar-atalhos-teclado.md`
+- `024-modo-economia-bateria.md`
 
 ### 🔧 Melhorias Técnicas
 - `016-bundler.md`
+- `017-limpar-console-logs.md`
+- `018-meta-tags-seo.md`
+- `019-dark-mode-automatico.md`
+- `020-wake-lock-api.md`
+- `021-web-share-api.md`
+- `022-documentar-atalhos-teclado.md`
+- `023-testes-e2e.md`
+- `024-modo-economia-bateria.md`
 
 ## 📝 Notas
 

@@ -487,5 +487,105 @@ Criar guia de contribuição para facilitar colaborações.
 
 ---
 
+---
+
+## 🆕 Issues Adicionais (Novas Sugestões)
+
+### 25. **Limpar Console.log do Código de Produção**
+**Labels:** `cleanup`, `code quality`, `production`
+
+**Descrição:**
+Remover ou substituir todos os `console.log`, `console.error` e `console.warn` do código de produção. Criar sistema de logging condicional que só funciona em desenvolvimento.
+
+**Estimativa:** 2-3 horas
+
+**Referência:** `issues/017-limpar-console-logs.md`
+
+---
+
+### 26. **Adicionar Meta Tags Open Graph e Twitter Cards**
+**Labels:** `enhancement`, `seo`, `social`
+
+**Descrição:**
+Adicionar meta tags Open Graph e Twitter Cards para melhorar compartilhamento em redes sociais e SEO. Criar imagem de compartilhamento otimizada.
+
+**Estimativa:** 1-2 horas
+
+**Referência:** `issues/018-meta-tags-seo.md`
+
+---
+
+### 27. **Adicionar Suporte a Dark Mode Automático (prefers-color-scheme)**
+**Labels:** `enhancement`, `feature`, `ux`
+
+**Descrição:**
+Detectar automaticamente a preferência de tema do sistema operacional usando `prefers-color-scheme` e aplicar tema correspondente no primeiro carregamento.
+
+**Estimativa:** 2-3 horas
+
+**Referência:** `issues/019-dark-mode-automatico.md`
+
+---
+
+### 28. **Adicionar Suporte a Wake Lock API**
+**Labels:** `enhancement`, `feature`, `mobile`, `pwa`
+
+**Descrição:**
+Adicionar suporte à Wake Lock API para evitar que a tela do dispositivo desligue durante uma sessão de Pomodoro ativa. Especialmente útil em dispositivos móveis.
+
+**Estimativa:** 3-4 horas
+
+**Referência:** `issues/020-wake-lock-api.md`
+
+---
+
+### 29. **Adicionar Suporte a Web Share API**
+**Labels:** `enhancement`, `feature`, `mobile`, `social`
+
+**Descrição:**
+Permitir que usuários compartilhem suas conquistas, estatísticas e progresso usando o menu nativo de compartilhamento do dispositivo.
+
+**Estimativa:** 2-3 horas
+
+**Referência:** `issues/021-web-share-api.md`
+
+---
+
+### 30. **Documentar Atalhos de Teclado na UI**
+**Labels:** `enhancement`, `documentation`, `ux`
+
+**Descrição:**
+Adicionar documentação visual dos atalhos de teclado disponíveis na interface. Criar modal de ajuda e adicionar tooltips com atalhos nos botões.
+
+**Estimativa:** 1-2 horas
+
+**Referência:** `issues/022-documentar-atalhos-teclado.md`
+
+---
+
+### 31. **Adicionar Testes End-to-End (E2E)**
+**Labels:** `enhancement`, `testing`, `e2e`
+
+**Descrição:**
+Adicionar testes end-to-end usando Playwright para validar fluxos completos do aplicativo. Complementa testes unitários testando integrações e comportamento real.
+
+**Estimativa:** 2-3 dias
+
+**Referência:** `issues/023-testes-e2e.md`
+
+---
+
+### 32. **Adicionar Modo de Economia de Bateria**
+**Labels:** `enhancement`, `feature`, `performance`, `mobile`
+
+**Descrição:**
+Adicionar modo de economia de bateria que reduz animações, atualizações e recursos quando bateria está baixa ou quando usuário ativa manualmente.
+
+**Estimativa:** 1 dia
+
+**Referência:** `issues/024-modo-economia-bateria.md`
+
+---
+
 **Última atualização:** 2024
-**Total de issues sugeridas:** 24
+**Total de issues sugeridas:** 32
