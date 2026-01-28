@@ -110,6 +110,9 @@ class PomodoroTimer {
     private statsToggle: HTMLElement;
     private statsCompletedPomodoros: HTMLElement;
     private statsTotalTime: HTMLElement;
+    
+    // Otimização: debounce para salvamentos
+    private saveStateTimeout: ReturnType<typeof setTimeout> | null = null;
 
     constructor() {
         this.workDuration = 25; // minutos
@@ -383,8 +386,8 @@ class PomodoroTimer {
             if (this.currentTime > 0) {
                 this.currentTime--;
                 this.updateDisplay();
-                // Salvar estado a cada segundo para persistência
-                this.saveSessionState();
+                // Salvar estado com debounce (a cada 2 segundos) para melhor performance
+                this.saveSessionStateDebounced();
             } else {
                 this.completeSession();
             }
@@ -407,7 +410,13 @@ class PomodoroTimer {
             this.intervalId = null;
         }
 
-        // Salvar estado ao pausar
+        // Limpar timeout de salvamento se existir
+        if (this.saveStateTimeout) {
+            clearTimeout(this.saveStateTimeout);
+            this.saveStateTimeout = null;
+        }
+
+        // Salvar estado ao pausar (imediatamente, sem debounce)
         this.saveSessionState();
     }
 
@@ -523,10 +532,13 @@ class PomodoroTimer {
         const offset = circumference - (progress * circumference);
         
         // Atualizar apenas se o valor mudou significativamente (otimização)
+        // Usar requestAnimationFrame para atualizações suaves
         const currentOffset = parseFloat(this.progressCircle.style.strokeDashoffset) || circumference;
         if (Math.abs(currentOffset - offset) > 0.1) {
-            this.progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-            this.progressCircle.style.strokeDashoffset = offset.toString();
+            requestAnimationFrame(() => {
+                this.progressCircle!.style.strokeDasharray = `${circumference} ${circumference}`;
+                this.progressCircle!.style.strokeDashoffset = offset.toString();
+            });
         }
         
         // Mudar cor baseado no tipo de sessão
@@ -664,6 +676,17 @@ class PomodoroTimer {
             longBreak: this.longBreak
         };
         localStorage.setItem('pomodoroSessionState', JSON.stringify(state));
+    }
+
+    // Versão debounced para reduzir escritas no LocalStorage
+    private saveSessionStateDebounced(): void {
+        if (this.saveStateTimeout) {
+            clearTimeout(this.saveStateTimeout);
+        }
+        this.saveStateTimeout = setTimeout(() => {
+            this.saveSessionState();
+            this.saveStateTimeout = null;
+        }, 2000); // Salvar a cada 2 segundos ao invés de cada segundo
     }
 
     private loadSessionState(): void {

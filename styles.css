@@ -802,6 +802,25 @@ body {
     font-size: 14px;
     background: var(--bg-primary);
     color: var(--text-primary);
+    transition: border-color var(--transition-fast);
+}
+
+.task-input:focus {
+    outline: 3px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 5px var(--accent-primary);
+}
+
+.task-input:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+}
+
+.task-input:focus-visible {
+    outline: 3px solid var(--accent-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 5px var(--accent-primary);
 }
 
 .btn-primary {
