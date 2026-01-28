@@ -593,6 +593,39 @@ body {
     box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 5px var(--accent-primary);
 }
 
+/* Validação de inputs */
+.setting-item input[type="number"].invalid {
+    border-color: #E74C3C;
+    background-color: rgba(231, 76, 60, 0.05);
+}
+
+.setting-item input[type="number"].invalid:focus {
+    border-color: #E74C3C;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.validation-error {
+    display: block;
+    color: #E74C3C;
+    font-size: 0.875rem;
+    margin-top: 4px;
+    min-height: 1.25rem;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.validation-error.show {
+    opacity: 1;
+}
+
+[data-theme="dark"] .setting-item input[type="number"].invalid {
+    background-color: rgba(255, 107, 107, 0.1);
+}
+
+[data-theme="dark"] .validation-error {
+    color: #FF6B6B;
+}
+
 .checkbox-label {
     display: flex;
     align-items: center;

@@ -1,5 +1,6 @@
 import { PomodoroSettings, PomodoroStats, SessionState, SessionHistory, Task, DailyGoal, Achievement, UserStats } from '../types';
 import { Logger } from '../utils/Logger';
+import { validateSettings, sanitizeSettings } from '../utils/validationUtils';
 
 /**
  * Serviço para gerenciar armazenamento no LocalStorage
@@ -209,14 +210,68 @@ export class StorageService {
         try {
             const data = JSON.parse(json);
             
-            if (data.settings) this.saveSettings(data.settings);
-            if (data.stats) this.saveStats(data.stats);
-            if (data.history) this.saveHistory(data.history);
-            if (data.tasks) this.saveTasks(data.tasks);
-            if (data.goal) this.saveDailyGoal(data.goal);
-            if (data.achievements) this.saveAchievements(data.achievements);
-            if (data.userStats) this.saveUserStats(data.userStats);
-            if (data.theme) this.saveTheme(data.theme);
+            // Validar e sanitizar configurações antes de salvar
+            if (data.settings) {
+                const validationResult = validateSettings(data.settings);
+                if (!validationResult.isValid) {
+                    Logger.warn('Configurações inválidas na importação:', validationResult.error);
+                    // Sanitizar configurações inválidas
+                    const sanitized = sanitizeSettings(data.settings);
+                    this.saveSettings(sanitized);
+                } else {
+                    this.saveSettings(data.settings);
+                }
+            }
+            
+            // Validar outros dados básicos
+            if (data.stats) {
+                // Validar que stats é um objeto válido
+                if (typeof data.stats === 'object' && data.stats !== null) {
+                    this.saveStats(data.stats);
+                }
+            }
+            
+            if (data.history) {
+                // Validar que history é um array
+                if (Array.isArray(data.history)) {
+                    this.saveHistory(data.history);
+                }
+            }
+            
+            if (data.tasks) {
+                // Validar que tasks é um array
+                if (Array.isArray(data.tasks)) {
+                    this.saveTasks(data.tasks);
+                }
+            }
+            
+            if (data.goal) {
+                // Validar que goal é um objeto válido
+                if (typeof data.goal === 'object' && data.goal !== null) {
+                    this.saveDailyGoal(data.goal);
+                }
+            }
+            
+            if (data.achievements) {
+                // Validar que achievements é um array
+                if (Array.isArray(data.achievements)) {
+                    this.saveAchievements(data.achievements);
+                }
+            }
+            
+            if (data.userStats) {
+                // Validar que userStats é um objeto válido
+                if (typeof data.userStats === 'object' && data.userStats !== null) {
+                    this.saveUserStats(data.userStats);
+                }
+            }
+            
+            if (data.theme) {
+                // Validar que theme é 'light' ou 'dark'
+                if (data.theme === 'light' || data.theme === 'dark') {
+                    this.saveTheme(data.theme);
+                }
+            }
             
             return true;
         } catch (e) {

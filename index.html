@@ -130,15 +130,18 @@
             <div class="modal-body">
                 <div class="setting-item">
                     <label for="work-duration">Duração do Trabalho (minutos)</label>
-                    <input type="number" id="work-duration" min="1" max="60" value="25">
+                    <input type="number" id="work-duration" min="1" max="120" value="25" step="1">
+                    <span class="validation-error" id="work-duration-error" role="alert" aria-live="polite"></span>
                 </div>
                 <div class="setting-item">
                     <label for="short-break">Pausa Curta (minutos)</label>
-                    <input type="number" id="short-break" min="1" max="30" value="5">
+                    <input type="number" id="short-break" min="1" max="30" value="5" step="1">
+                    <span class="validation-error" id="short-break-error" role="alert" aria-live="polite"></span>
                 </div>
                 <div class="setting-item">
                     <label for="long-break">Pausa Longa (minutos)</label>
-                    <input type="number" id="long-break" min="1" max="60" value="15">
+                    <input type="number" id="long-break" min="1" max="60" value="15" step="1">
+                    <span class="validation-error" id="long-break-error" role="alert" aria-live="polite"></span>
                 </div>
                 <div class="setting-item">
                     <label class="checkbox-label">

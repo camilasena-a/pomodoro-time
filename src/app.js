@@ -13,6 +13,7 @@ import { formatTime, formatDuration } from './utils/timeUtils';
 import { debounce } from './utils/debounce';
 import { getRandomMessage } from './utils/motivationalMessages';
 import { Logger } from './utils/Logger';
+import { validateWorkDuration, validateShortBreak, validateLongBreak, sanitizeSettings, validateSettings } from './utils/validationUtils';
 // Re-exportar tipos para uso no script.ts
 export * from './types';
 class PomodoroTimer {
@@ -112,29 +113,68 @@ class PomodoroTimer {
                 this.setPreset(minutes);
             });
         });
+        // Validação em tempo real para work duration
+        this.workDurationInput.addEventListener('input', () => {
+            this.validateAndUpdateInput(this.workDurationInput, validateWorkDuration, (value) => {
+                this.workDuration = value;
+                if (this.currentSessionType === 'work' && !this.isRunning) {
+                    this.currentTime = this.workDuration * 60;
+                    this.updateDisplay();
+                }
+                this.saveSettings();
+            });
+        });
         this.workDurationInput.addEventListener('change', () => {
-            this.workDuration = parseInt(this.workDurationInput.value, 10);
-            if (this.currentSessionType === 'work' && !this.isRunning) {
-                this.currentTime = this.workDuration * 60;
-                this.updateDisplay();
+            if (this.validateInput(this.workDurationInput, validateWorkDuration)) {
+                this.workDuration = parseInt(this.workDurationInput.value, 10);
+                if (this.currentSessionType === 'work' && !this.isRunning) {
+                    this.currentTime = this.workDuration * 60;
+                    this.updateDisplay();
+                }
+                this.saveSettings();
             }
-            this.saveSettings();
+        });
+        // Validação em tempo real para short break
+        this.shortBreakInput.addEventListener('input', () => {
+            this.validateAndUpdateInput(this.shortBreakInput, validateShortBreak, (value) => {
+                this.shortBreak = value;
+                if (this.currentSessionType === 'shortBreak' && !this.isRunning) {
+                    this.currentTime = this.shortBreak * 60;
+                    this.updateDisplay();
+                }
+                this.saveSettings();
+            });
         });
         this.shortBreakInput.addEventListener('change', () => {
-            this.shortBreak = parseInt(this.shortBreakInput.value, 10);
-            if (this.currentSessionType === 'shortBreak' && !this.isRunning) {
-                this.currentTime = this.shortBreak * 60;
-                this.updateDisplay();
+            if (this.validateInput(this.shortBreakInput, validateShortBreak)) {
+                this.shortBreak = parseInt(this.shortBreakInput.value, 10);
+                if (this.currentSessionType === 'shortBreak' && !this.isRunning) {
+                    this.currentTime = this.shortBreak * 60;
+                    this.updateDisplay();
+                }
+                this.saveSettings();
             }
-            this.saveSettings();
+        });
+        // Validação em tempo real para long break
+        this.longBreakInput.addEventListener('input', () => {
+            this.validateAndUpdateInput(this.longBreakInput, validateLongBreak, (value) => {
+                this.longBreak = value;
+                if (this.currentSessionType === 'longBreak' && !this.isRunning) {
+                    this.currentTime = this.longBreak * 60;
+                    this.updateDisplay();
+                }
+                this.saveSettings();
+            });
         });
         this.longBreakInput.addEventListener('change', () => {
-            this.longBreak = parseInt(this.longBreakInput.value, 10);
-            if (this.currentSessionType === 'longBreak' && !this.isRunning) {
-                this.currentTime = this.longBreak * 60;
-                this.updateDisplay();
+            if (this.validateInput(this.longBreakInput, validateLongBreak)) {
+                this.longBreak = parseInt(this.longBreakInput.value, 10);
+                if (this.currentSessionType === 'longBreak' && !this.isRunning) {
+                    this.currentTime = this.longBreak * 60;
+                    this.updateDisplay();
+                }
+                this.saveSettings();
             }
-            this.saveSettings();
         });
         this.soundNotificationInput.addEventListener('change', () => {
             this.soundEnabled = this.soundNotificationInput.checked;
@@ -527,12 +567,29 @@ class PomodoroTimer {
     loadSettings() {
         const saved = StorageService.loadSettings();
         if (saved) {
-            this.workDuration = saved.workDuration || 25;
-            this.shortBreak = saved.shortBreak || 5;
-            this.longBreak = saved.longBreak || 15;
-            this.soundEnabled = saved.soundEnabled !== undefined ? saved.soundEnabled : true;
-            this.autoStartBreaks = saved.autoStartBreaks || false;
-            this.autoStartPomodoros = saved.autoStartPomodoros || false;
+            // Validar e sanitizar configurações carregadas
+            const validationResult = validateSettings(saved);
+            if (!validationResult.isValid) {
+                Logger.warn('Configurações inválidas detectadas:', validationResult.error);
+                // Sanitizar configurações inválidas
+                const sanitized = sanitizeSettings(saved);
+                this.workDuration = sanitized.workDuration || 25;
+                this.shortBreak = sanitized.shortBreak || 5;
+                this.longBreak = sanitized.longBreak || 15;
+                this.soundEnabled = sanitized.soundEnabled !== undefined ? sanitized.soundEnabled : true;
+                this.autoStartBreaks = sanitized.autoStartBreaks || false;
+                this.autoStartPomodoros = sanitized.autoStartPomodoros || false;
+                // Salvar configurações sanitizadas
+                this.saveSettings();
+            }
+            else {
+                this.workDuration = saved.workDuration || 25;
+                this.shortBreak = saved.shortBreak || 5;
+                this.longBreak = saved.longBreak || 15;
+                this.soundEnabled = saved.soundEnabled !== undefined ? saved.soundEnabled : true;
+                this.autoStartBreaks = saved.autoStartBreaks || false;
+                this.autoStartPomodoros = saved.autoStartPomodoros || false;
+            }
             SoundService.setEnabled(this.soundEnabled);
             if (saved.soundVolume !== undefined) {
                 SoundService.setVolume(saved.soundVolume);
@@ -542,6 +599,10 @@ class PomodoroTimer {
         this.shortBreakInput.value = this.shortBreak.toString();
         this.longBreakInput.value = this.longBreak.toString();
         this.soundNotificationInput.checked = this.soundEnabled;
+        // Limpar estados de validação ao carregar
+        this.clearValidationError(this.workDurationInput);
+        this.clearValidationError(this.shortBreakInput);
+        this.clearValidationError(this.longBreakInput);
         if (this.currentSessionType === 'work') {
             this.currentTime = this.workDuration * 60;
         }
@@ -562,6 +623,77 @@ class PomodoroTimer {
             this.sessionCount = saved.sessionCount || 0;
         }
         this.updateStats();
+    }
+    /**
+     * Valida um input e mostra feedback visual
+     */
+    validateInput(input, validator) {
+        const value = input.value.trim();
+        // Se vazio, não validar ainda (aguardar blur)
+        if (value === '') {
+            return true;
+        }
+        const result = validator(value);
+        const errorElement = document.getElementById(`${input.id}-error`);
+        if (!result.isValid) {
+            input.classList.add('invalid');
+            if (errorElement) {
+                errorElement.textContent = result.error || '';
+                errorElement.classList.add('show');
+            }
+            return false;
+        }
+        else {
+            input.classList.remove('invalid');
+            if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.classList.remove('show');
+            }
+            return true;
+        }
+    }
+    /**
+     * Valida e atualiza input em tempo real (durante digitação)
+     */
+    validateAndUpdateInput(input, validator, onValid) {
+        const value = input.value.trim();
+        // Se vazio, limpar validação mas não executar callback
+        if (value === '') {
+            this.clearValidationError(input);
+            return;
+        }
+        const result = validator(value);
+        const errorElement = document.getElementById(`${input.id}-error`);
+        if (!result.isValid) {
+            input.classList.add('invalid');
+            if (errorElement) {
+                errorElement.textContent = result.error || '';
+                errorElement.classList.add('show');
+            }
+        }
+        else {
+            input.classList.remove('invalid');
+            if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.classList.remove('show');
+            }
+            // Executar callback apenas se válido
+            const numValue = parseInt(value, 10);
+            if (!isNaN(numValue)) {
+                onValid(numValue);
+            }
+        }
+    }
+    /**
+     * Limpa estado de erro de validação
+     */
+    clearValidationError(input) {
+        input.classList.remove('invalid');
+        const errorElement = document.getElementById(`${input.id}-error`);
+        if (errorElement) {
+            errorElement.textContent = '';
+            errorElement.classList.remove('show');
+        }
     }
 }
 // Inicializar quando a página carregar
