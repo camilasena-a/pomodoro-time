@@ -1,42 +1,42 @@
-"use strict";
-// Sistema de logging condicional
-class Logger {
-    static log(...args) {
-        if (this.isDev) {
-            console.log('[Pomodoro]', ...args);
-        }
-    }
-    static error(...args) {
-        // Erros sempre logados para debug, mas formatados
-        console.error('[Pomodoro Error]', ...args);
-    }
-    static warn(...args) {
-        if (this.isDev) {
-            console.warn('[Pomodoro]', ...args);
-        }
-    }
-}
-Logger.isDev = typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1' ||
-        window.location.hostname.includes('localhost'));
+// Arquivo principal que integra todos os serviços e componentes
+// Este arquivo será compilado para script.js
+import { StorageService } from './services/StorageService';
+import { NotificationService } from './services/NotificationService';
+import { SoundService } from './services/SoundService';
+import { HistoryService } from './services/HistoryService';
+import { GoalService } from './services/GoalService';
+import { AchievementService } from './services/AchievementService';
+import { XPService } from './services/XPService';
+import { Toast } from './components/Toast';
+import { Confetti } from './components/Confetti';
+import { formatTime, formatDuration } from './utils/timeUtils';
+import { debounce } from './utils/debounce';
+import { getRandomMessage } from './utils/motivationalMessages';
+import { Logger } from './utils/Logger';
+// Re-exportar tipos para uso no script.ts
+export * from './types';
 class PomodoroTimer {
     constructor() {
-        // Otimização: debounce para salvamentos
-        this.saveStateTimeout = null;
-        this.workDuration = 25; // minutos
+        this.workDuration = 25;
         this.shortBreak = 5;
         this.longBreak = 15;
-        this.currentTime = this.workDuration * 60; // em segundos
+        this.currentTime = this.workDuration * 60;
         this.isRunning = false;
         this.isPaused = false;
         this.intervalId = null;
         this.sessionCount = 0;
         this.completedPomodoros = 0;
-        this.totalTime = 0; // em minutos
+        this.totalTime = 0;
         this.currentSessionType = 'work';
         this.soundEnabled = true;
+        this.autoStartBreaks = false;
+        this.autoStartPomodoros = false;
         this.sessionStartTime = null;
+        this.currentTaskId = null;
+        // Criar função debounced para salvar estado
+        this.saveSessionStateDebounced = debounce(() => {
+            this.saveSessionState();
+        }, 5000);
         this.initializeElements();
         this.initTheme();
         this.loadSettings();
@@ -45,6 +45,7 @@ class PomodoroTimer {
         this.updateDisplay();
         this.setupEventListeners();
         this.setupKeyboardShortcuts();
+        this.updateGoalDisplay();
     }
     initializeElements() {
         // Timer elements
@@ -68,6 +69,14 @@ class PomodoroTimer {
         this.themeIcon = this.getElementOrThrow('theme-icon');
         // Progress circle
         this.progressCircle = document.querySelector('.progress-ring-circle');
+        const progressCircleBg = document.querySelector('.progress-ring-circle-bg');
+        // Aplicar cor vermelha tomate imediatamente em ambos os círculos
+        if (this.progressCircle) {
+            this.progressCircle.style.stroke = '#FF6347';
+        }
+        if (progressCircleBg) {
+            progressCircleBg.style.stroke = '#FF6347';
+        }
         // Modal elements
         this.settingsModal = this.getElementOrThrow('settings-modal');
         this.statsModal = this.getElementOrThrow('stats-modal');
@@ -75,6 +84,9 @@ class PomodoroTimer {
         this.statsToggle = this.getElementOrThrow('stats-toggle');
         this.statsCompletedPomodoros = this.getElementOrThrow('stats-completed-pomodoros');
         this.statsTotalTime = this.getElementOrThrow('stats-total-time');
+        // Goal elements (criar se não existirem)
+        this.goalProgressDisplay = document.getElementById('goal-progress');
+        this.streakDisplay = document.getElementById('streak-display');
     }
     getElementOrThrow(id) {
         const element = document.getElementById(id);
@@ -126,6 +138,7 @@ class PomodoroTimer {
         });
         this.soundNotificationInput.addEventListener('change', () => {
             this.soundEnabled = this.soundNotificationInput.checked;
+            SoundService.setEnabled(this.soundEnabled);
             this.saveSettings();
         });
         this.themeToggle.addEventListener('click', () => this.toggleTheme());
@@ -165,17 +178,10 @@ class PomodoroTimer {
     }
     updateStatsModal() {
         this.statsCompletedPomodoros.textContent = this.completedPomodoros.toString();
-        const hours = Math.floor(this.totalTime / 60);
-        const minutes = this.totalTime % 60;
-        if (hours > 0) {
-            this.statsTotalTime.textContent = `${hours}h ${minutes}min`;
-        }
-        else {
-            this.statsTotalTime.textContent = `${minutes}min`;
-        }
+        this.statsTotalTime.textContent = formatDuration(this.totalTime);
     }
     initTheme() {
-        const savedTheme = (localStorage.getItem('pomodoroTheme') || 'light');
+        const savedTheme = StorageService.loadTheme();
         document.documentElement.setAttribute('data-theme', savedTheme);
         this.updateThemeIcon(savedTheme);
     }
@@ -183,7 +189,7 @@ class PomodoroTimer {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('pomodoroTheme', newTheme);
+        StorageService.saveTheme(newTheme);
         this.updateThemeIcon(newTheme);
     }
     updateThemeIcon(theme) {
@@ -192,7 +198,6 @@ class PomodoroTimer {
     setupKeyboardShortcuts() {
         document.addEventListener('keydown', (e) => {
             const target = e.target;
-            // Ignorar se estiver digitando em input
             if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')
                 return;
             switch (e.key) {
@@ -257,13 +262,12 @@ class PomodoroTimer {
         this.pauseBtn.style.display = 'flex';
         const timerWrapper = document.querySelector('.timer-wrapper');
         timerWrapper?.classList.add('timer-running');
-        // Salvar estado imediatamente
+        SoundService.playStartSound();
         this.saveSessionState();
         this.intervalId = setInterval(() => {
             if (this.currentTime > 0) {
                 this.currentTime--;
                 this.updateDisplay();
-                // Salvar estado com debounce (a cada 2 segundos) para melhor performance
                 this.saveSessionStateDebounced();
             }
             else {
@@ -284,12 +288,6 @@ class PomodoroTimer {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
-        // Limpar timeout de salvamento se existir
-        if (this.saveStateTimeout) {
-            clearTimeout(this.saveStateTimeout);
-            this.saveStateTimeout = null;
-        }
-        // Salvar estado ao pausar (imediatamente, sem debounce)
         this.saveSessionState();
     }
     reset() {
@@ -304,7 +302,6 @@ class PomodoroTimer {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
-        // Resetar para o tempo padrão do tipo de sessão atual
         if (this.currentSessionType === 'work') {
             this.currentTime = this.workDuration * 60;
         }
@@ -314,8 +311,7 @@ class PomodoroTimer {
         else {
             this.currentTime = this.longBreak * 60;
         }
-        // Remover estado salvo
-        localStorage.removeItem('pomodoroSessionState');
+        StorageService.clearSessionState();
         this.updateDisplay();
     }
     completeSession() {
@@ -325,44 +321,69 @@ class PomodoroTimer {
         timeWrapper?.classList.add('timer-complete');
         setTimeout(() => timeWrapper?.classList.remove('timer-complete'), 600);
         // Mostrar confetti
-        this.showConfetti();
+        Confetti.show();
         if (this.currentSessionType === 'work') {
+            const duration = this.workDuration;
             this.completedPomodoros++;
-            this.totalTime += this.workDuration;
+            this.totalTime += duration;
             this.sessionCount++;
+            // Adicionar ao histórico
+            HistoryService.addSession('work', duration, this.currentTaskId || undefined);
+            // Atualizar meta
+            GoalService.incrementTodayPomodoros();
+            // Adicionar XP
+            const { leveledUp, newLevel } = XPService.addPomodoroXP();
+            if (leveledUp && newLevel) {
+                Toast.success(`🎉 Nível ${newLevel} alcançado!`, 5000);
+            }
+            // Verificar conquistas
+            const newAchievements = AchievementService.checkAchievements();
+            newAchievements.forEach(achievement => {
+                Toast.success(`${achievement.icon} ${achievement.name}! ${achievement.description}`, 5000);
+            });
+            // Verificar se meta foi alcançada
+            if (GoalService.isGoalReached()) {
+                Toast.success(getRandomMessage('goalReached'), 5000);
+                NotificationService.showGoalReached();
+            }
             // Após 4 pomodoros, sugerir pausa longa
             if (this.completedPomodoros % 4 === 0) {
                 this.currentSessionType = 'longBreak';
                 this.currentTime = this.longBreak * 60;
-                this.showToast('🎉 4 Pomodoros completos! Hora de uma pausa longa!');
+                Toast.info('🎉 4 Pomodoros completos! Hora de uma pausa longa!');
             }
             else {
                 this.currentSessionType = 'shortBreak';
                 this.currentTime = this.shortBreak * 60;
-                this.showToast('✅ Pomodoro completo! Hora de uma pausa.');
+                Toast.success(getRandomMessage('pomodoroComplete'));
+            }
+            // Auto-start break se configurado
+            if (this.autoStartBreaks) {
+                setTimeout(() => this.start(), 1000);
             }
         }
         else {
             // Após pausa, voltar ao trabalho
             this.currentSessionType = 'work';
             this.currentTime = this.workDuration * 60;
-            this.showToast('💪 Pausa concluída! Hora de focar novamente.');
+            Toast.info(getRandomMessage('breakComplete'));
+            // Auto-start pomodoro se configurado
+            if (this.autoStartPomodoros) {
+                setTimeout(() => this.start(), 1000);
+            }
         }
         // Remover estado salvo ao completar
-        localStorage.removeItem('pomodoroSessionState');
+        StorageService.clearSessionState();
         this.updateDisplay();
         this.updateStats();
         this.saveStats();
+        this.updateGoalDisplay();
         this.showNotification();
-        this.playSound();
+        SoundService.playCompleteSound();
     }
     updateDisplay() {
-        const minutes = Math.floor(this.currentTime / 60);
-        const seconds = this.currentTime % 60;
-        this.timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        // Atualizar barra de progresso
+        this.timerDisplay.textContent = formatTime(this.currentTime);
         this.updateProgressRing();
-        // Atualizar tipo de sessão
         const sessionTypeNames = {
             'work': 'Trabalho',
             'shortBreak': 'Pausa Curta',
@@ -370,7 +391,6 @@ class PomodoroTimer {
         };
         this.sessionTypeDisplay.textContent = sessionTypeNames[this.currentSessionType];
         this.sessionCountDisplay.textContent = (this.sessionCount + 1).toString();
-        // Atualizar botões preset ativos
         this.presetButtons.forEach(btn => {
             btn.classList.remove('active');
             const minutes = parseInt(btn.dataset.minutes || '0', 10);
@@ -389,22 +409,18 @@ class PomodoroTimer {
         const progress = Math.max(0, Math.min(1, elapsed / totalTime));
         const radius = this.progressCircle.r.baseVal.value;
         const circumference = radius * 2 * Math.PI;
+        // Calcular o offset: quando progress = 0, offset = circumference (vazio)
+        // quando progress = 1, offset = 0 (completo)
         const offset = circumference - (progress * circumference);
-        // Atualizar apenas se o valor mudou significativamente (otimização)
-        // Usar requestAnimationFrame para atualizações suaves
-        const currentOffset = parseFloat(this.progressCircle.style.strokeDashoffset) || circumference;
-        if (Math.abs(currentOffset - offset) > 0.1) {
-            requestAnimationFrame(() => {
-                this.progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-                this.progressCircle.style.strokeDashoffset = offset.toString();
-            });
-        }
-        // Mudar cor baseado no tipo de sessão
-        if (this.currentSessionType === 'work') {
-            this.progressCircle.style.stroke = '#FF6347';
-        }
-        else {
-            this.progressCircle.style.stroke = '#FF6347';
+        // SEMPRE atualizar o stroke-dasharray e stroke-dashoffset para animação suave
+        this.progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        this.progressCircle.style.strokeDashoffset = offset.toString();
+        // SEMPRE aplicar cor vermelha tomate
+        this.progressCircle.style.stroke = '#FF6347';
+        // Também atualizar o círculo de fundo (sempre visível, mais transparente)
+        const progressCircleBg = document.querySelector('.progress-ring-circle-bg');
+        if (progressCircleBg) {
+            progressCircleBg.style.stroke = '#FF6347';
         }
     }
     getTotalTimeForCurrentSession() {
@@ -420,89 +436,29 @@ class PomodoroTimer {
     }
     updateStats() {
         this.completedPomodorosDisplay.textContent = this.completedPomodoros.toString();
-        const hours = Math.floor(this.totalTime / 60);
-        const minutes = this.totalTime % 60;
-        if (hours > 0) {
-            this.totalTimeDisplay.textContent = `${hours}h ${minutes}min`;
-        }
-        else {
-            this.totalTimeDisplay.textContent = `${minutes}min`;
-        }
-        // Atualizar modal de stats se estiver aberto
+        this.totalTimeDisplay.textContent = formatDuration(this.totalTime);
         if (this.statsModal && this.statsModal.getAttribute('aria-hidden') === 'false') {
             this.updateStatsModal();
         }
     }
+    updateGoalDisplay() {
+        const progress = GoalService.getProgress();
+        const remaining = GoalService.getRemainingPomodoros();
+        const streak = GoalService.getCurrentStreak();
+        if (this.goalProgressDisplay) {
+            this.goalProgressDisplay.textContent = `${Math.round(progress)}%`;
+        }
+        if (this.streakDisplay) {
+            this.streakDisplay.textContent = `🔥 ${streak}`;
+        }
+    }
     showNotification() {
-        if ('Notification' in window && Notification.permission === 'granted') {
-            const message = this.currentSessionType === 'work'
-                ? 'Pausa concluída! Hora de voltar ao trabalho.'
-                : 'Pomodoro completo! Hora de uma pausa.';
-            new Notification('🍅 Pomodoro Timer', {
-                body: message,
-                icon: '🍅'
-            });
+        if (this.currentSessionType === 'work') {
+            NotificationService.showBreakComplete();
         }
-        else if ('Notification' in window && Notification.permission !== 'denied') {
-            Notification.requestPermission().then((permission) => {
-                if (permission === 'granted') {
-                    this.showNotification();
-                }
-            });
+        else {
+            NotificationService.showPomodoroComplete();
         }
-    }
-    playSound() {
-        if (!this.soundEnabled)
-            return;
-        // Criar um som simples usando Web Audio API
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioContext = new AudioContext();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-    }
-    showConfetti() {
-        const container = document.createElement('div');
-        container.className = 'confetti-container';
-        document.body.appendChild(container);
-        const colors = ['#e74c3c', '#3498db', '#27ae60', '#f39c12', '#9b59b6'];
-        const confettiCount = 50;
-        for (let i = 0; i < confettiCount; i++) {
-            const confetti = document.createElement('div');
-            confetti.className = 'confetti';
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.animationDelay = Math.random() * 0.5 + 's';
-            confetti.style.width = (Math.random() * 10 + 5) + 'px';
-            confetti.style.height = (Math.random() * 10 + 5) + 'px';
-            container.appendChild(confetti);
-        }
-        setTimeout(() => container.remove(), 3000);
-    }
-    showToast(message) {
-        // Remover toast existente se houver
-        const existingToast = document.querySelector('.toast');
-        if (existingToast) {
-            existingToast.remove();
-        }
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        // Trigger animation
-        setTimeout(() => toast.classList.add('show'), 10);
-        // Remover após 3 segundos
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
     }
     saveSessionState() {
         if (!this.isRunning)
@@ -519,59 +475,42 @@ class PomodoroTimer {
             shortBreak: this.shortBreak,
             longBreak: this.longBreak
         };
-        localStorage.setItem('pomodoroSessionState', JSON.stringify(state));
-    }
-    // Versão debounced para reduzir escritas no LocalStorage
-    saveSessionStateDebounced() {
-        if (this.saveStateTimeout) {
-            clearTimeout(this.saveStateTimeout);
-        }
-        this.saveStateTimeout = setTimeout(() => {
-            this.saveSessionState();
-            this.saveStateTimeout = null;
-        }, 2000); // Salvar a cada 2 segundos ao invés de cada segundo
+        StorageService.saveSessionState(state);
     }
     loadSessionState() {
-        const saved = localStorage.getItem('pomodoroSessionState');
+        const saved = StorageService.loadSessionState();
         if (!saved)
             return;
         try {
-            const state = JSON.parse(saved);
-            const timeElapsed = Math.floor((Date.now() - state.timestamp) / 1000);
-            // Restaurar configurações se necessário
-            if (state.workDuration)
-                this.workDuration = state.workDuration;
-            if (state.shortBreak)
-                this.shortBreak = state.shortBreak;
-            if (state.longBreak)
-                this.longBreak = state.longBreak;
-            // Verificar se sessão ainda é válida (não expirou)
-            if (state.isRunning && timeElapsed < state.currentTime && timeElapsed >= 0) {
-                // Recuperar sessão ativa
-                this.currentTime = state.currentTime - timeElapsed;
-                this.currentSessionType = state.currentSessionType;
-                this.sessionCount = state.sessionCount || 0;
-                this.completedPomodoros = state.completedPomodoros || 0;
-                this.totalTime = state.totalTime || 0;
-                // Continuar automaticamente se ainda tiver tempo
+            const timeElapsed = Math.floor((Date.now() - saved.timestamp) / 1000);
+            if (saved.workDuration)
+                this.workDuration = saved.workDuration;
+            if (saved.shortBreak)
+                this.shortBreak = saved.shortBreak;
+            if (saved.longBreak)
+                this.longBreak = saved.longBreak;
+            if (saved.isRunning && timeElapsed < saved.currentTime && timeElapsed >= 0) {
+                this.currentTime = saved.currentTime - timeElapsed;
+                this.currentSessionType = saved.currentSessionType;
+                this.sessionCount = saved.sessionCount || 0;
+                this.completedPomodoros = saved.completedPomodoros || 0;
+                this.totalTime = saved.totalTime || 0;
                 if (this.currentTime > 0) {
                     this.updateDisplay();
                     this.updateStats();
-                    this.showToast('⏱️ Sessão anterior recuperada!');
+                    Toast.info('⏱️ Sessão anterior recuperada!');
                 }
                 else {
-                    // Sessão expirou, completar
                     this.completeSession();
                 }
             }
             else {
-                // Sessão expirou ou estava pausada, limpar
-                localStorage.removeItem('pomodoroSessionState');
+                StorageService.clearSessionState();
             }
         }
         catch (e) {
             Logger.error('Erro ao carregar estado da sessão:', e);
-            localStorage.removeItem('pomodoroSessionState');
+            StorageService.clearSessionState();
         }
     }
     saveSettings() {
@@ -579,22 +518,24 @@ class PomodoroTimer {
             workDuration: this.workDuration,
             shortBreak: this.shortBreak,
             longBreak: this.longBreak,
-            soundEnabled: this.soundEnabled
+            soundEnabled: this.soundEnabled,
+            autoStartBreaks: this.autoStartBreaks,
+            autoStartPomodoros: this.autoStartPomodoros
         };
-        localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+        StorageService.saveSettings(settings);
     }
     loadSettings() {
-        const saved = localStorage.getItem('pomodoroSettings');
+        const saved = StorageService.loadSettings();
         if (saved) {
-            try {
-                const settings = JSON.parse(saved);
-                this.workDuration = settings.workDuration || 25;
-                this.shortBreak = settings.shortBreak || 5;
-                this.longBreak = settings.longBreak || 15;
-                this.soundEnabled = settings.soundEnabled !== undefined ? settings.soundEnabled : true;
-            }
-            catch (e) {
-                Logger.error('Erro ao carregar configurações:', e);
+            this.workDuration = saved.workDuration || 25;
+            this.shortBreak = saved.shortBreak || 5;
+            this.longBreak = saved.longBreak || 15;
+            this.soundEnabled = saved.soundEnabled !== undefined ? saved.soundEnabled : true;
+            this.autoStartBreaks = saved.autoStartBreaks || false;
+            this.autoStartPomodoros = saved.autoStartPomodoros || false;
+            SoundService.setEnabled(this.soundEnabled);
+            if (saved.soundVolume !== undefined) {
+                SoundService.setVolume(saved.soundVolume);
             }
         }
         this.workDurationInput.value = this.workDuration.toString();
@@ -611,34 +552,20 @@ class PomodoroTimer {
             totalTime: this.totalTime,
             sessionCount: this.sessionCount
         };
-        localStorage.setItem('pomodoroStats', JSON.stringify(stats));
+        StorageService.saveStats(stats);
     }
     loadStats() {
-        const saved = localStorage.getItem('pomodoroStats');
+        const saved = StorageService.loadStats();
         if (saved) {
-            try {
-                const stats = JSON.parse(saved);
-                this.completedPomodoros = stats.completedPomodoros || 0;
-                this.totalTime = stats.totalTime || 0;
-                this.sessionCount = stats.sessionCount || 0;
-            }
-            catch (e) {
-                Logger.error('Erro ao carregar estatísticas:', e);
-            }
+            this.completedPomodoros = saved.completedPomodoros || 0;
+            this.totalTime = saved.totalTime || 0;
+            this.sessionCount = saved.sessionCount || 0;
         }
         this.updateStats();
     }
 }
-// Solicitar permissão de notificação quando a página carregar
-if ('Notification' in window && Notification.permission === 'default') {
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            Notification.requestPermission();
-        }, 1000);
-    });
-}
-// Inicializar o timer quando a página carregar
+// Inicializar quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
     new PomodoroTimer();
 });
-//# sourceMappingURL=script.js.map
+//# sourceMappingURL=app.js.map

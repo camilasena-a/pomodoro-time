@@ -15,6 +15,7 @@ import { Confetti } from './components/Confetti';
 import { formatTime, formatDuration, minutesToSeconds, getDateString } from './utils/timeUtils';
 import { debounce } from './utils/debounce';
 import { getRandomMessage } from './utils/motivationalMessages';
+import { Logger } from './utils/Logger';
 
 // Re-exportar tipos para uso no script.ts
 export * from './types';
@@ -641,7 +642,7 @@ class PomodoroTimer {
                 StorageService.clearSessionState();
             }
         } catch (e) {
-            console.error('Erro ao carregar estado da sessão:', e);
+            Logger.error('Erro ao carregar estado da sessão:', e);
             StorageService.clearSessionState();
         }
     }

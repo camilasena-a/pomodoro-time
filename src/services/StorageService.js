@@ -1,197 +1,179 @@
-import { PomodoroSettings, PomodoroStats, SessionState, SessionHistory, Task, DailyGoal, Achievement, UserStats } from '../types';
 import { Logger } from '../utils/Logger';
-
 /**
  * Serviço para gerenciar armazenamento no LocalStorage
  */
 export class StorageService {
-    private static readonly KEYS = {
-        SETTINGS: 'pomodoroSettings',
-        STATS: 'pomodoroStats',
-        SESSION_STATE: 'pomodoroSessionState',
-        HISTORY: 'pomodoroHistory',
-        TASKS: 'pomodoroTasks',
-        GOAL: 'pomodoroDailyGoal',
-        ACHIEVEMENTS: 'pomodoroAchievements',
-        USER_STATS: 'pomodoroUserStats',
-        THEME: 'pomodoroTheme'
-    };
-
     // Settings
-    static saveSettings(settings: PomodoroSettings): void {
+    static saveSettings(settings) {
         try {
             localStorage.setItem(this.KEYS.SETTINGS, JSON.stringify(settings));
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao salvar configurações:', e);
         }
     }
-
-    static loadSettings(): PomodoroSettings | null {
+    static loadSettings() {
         try {
             const saved = localStorage.getItem(this.KEYS.SETTINGS);
             return saved ? JSON.parse(saved) : null;
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao carregar configurações:', e);
             return null;
         }
     }
-
     // Stats
-    static saveStats(stats: PomodoroStats): void {
+    static saveStats(stats) {
         try {
             localStorage.setItem(this.KEYS.STATS, JSON.stringify(stats));
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao salvar estatísticas:', e);
         }
     }
-
-    static loadStats(): PomodoroStats | null {
+    static loadStats() {
         try {
             const saved = localStorage.getItem(this.KEYS.STATS);
             return saved ? JSON.parse(saved) : null;
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao carregar estatísticas:', e);
             return null;
         }
     }
-
     // Session State
-    static saveSessionState(state: SessionState): void {
+    static saveSessionState(state) {
         try {
             localStorage.setItem(this.KEYS.SESSION_STATE, JSON.stringify(state));
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao salvar estado da sessão:', e);
         }
     }
-
-    static loadSessionState(): SessionState | null {
+    static loadSessionState() {
         try {
             const saved = localStorage.getItem(this.KEYS.SESSION_STATE);
             return saved ? JSON.parse(saved) : null;
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao carregar estado da sessão:', e);
             return null;
         }
     }
-
-    static clearSessionState(): void {
+    static clearSessionState() {
         localStorage.removeItem(this.KEYS.SESSION_STATE);
     }
-
     // History
-    static saveHistory(history: SessionHistory[]): void {
+    static saveHistory(history) {
         try {
             // Manter apenas últimos 1000 registros para não exceder limite do localStorage
             const limitedHistory = history.slice(-1000);
             localStorage.setItem(this.KEYS.HISTORY, JSON.stringify(limitedHistory));
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao salvar histórico:', e);
         }
     }
-
-    static loadHistory(): SessionHistory[] {
+    static loadHistory() {
         try {
             const saved = localStorage.getItem(this.KEYS.HISTORY);
             return saved ? JSON.parse(saved) : [];
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao carregar histórico:', e);
             return [];
         }
     }
-
-    static addToHistory(session: SessionHistory): void {
+    static addToHistory(session) {
         const history = this.loadHistory();
         history.push(session);
         this.saveHistory(history);
     }
-
     // Tasks
-    static saveTasks(tasks: Task[]): void {
+    static saveTasks(tasks) {
         try {
             localStorage.setItem(this.KEYS.TASKS, JSON.stringify(tasks));
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao salvar tarefas:', e);
         }
     }
-
-    static loadTasks(): Task[] {
+    static loadTasks() {
         try {
             const saved = localStorage.getItem(this.KEYS.TASKS);
             return saved ? JSON.parse(saved) : [];
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao carregar tarefas:', e);
             return [];
         }
     }
-
     // Daily Goal
-    static saveDailyGoal(goal: DailyGoal): void {
+    static saveDailyGoal(goal) {
         try {
             localStorage.setItem(this.KEYS.GOAL, JSON.stringify(goal));
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao salvar meta diária:', e);
         }
     }
-
-    static loadDailyGoal(): DailyGoal | null {
+    static loadDailyGoal() {
         try {
             const saved = localStorage.getItem(this.KEYS.GOAL);
             return saved ? JSON.parse(saved) : null;
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao carregar meta diária:', e);
             return null;
         }
     }
-
     // Achievements
-    static saveAchievements(achievements: Achievement[]): void {
+    static saveAchievements(achievements) {
         try {
             localStorage.setItem(this.KEYS.ACHIEVEMENTS, JSON.stringify(achievements));
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao salvar conquistas:', e);
         }
     }
-
-    static loadAchievements(): Achievement[] {
+    static loadAchievements() {
         try {
             const saved = localStorage.getItem(this.KEYS.ACHIEVEMENTS);
             return saved ? JSON.parse(saved) : [];
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao carregar conquistas:', e);
             return [];
         }
     }
-
     // User Stats (XP, Level)
-    static saveUserStats(stats: UserStats): void {
+    static saveUserStats(stats) {
         try {
             localStorage.setItem(this.KEYS.USER_STATS, JSON.stringify(stats));
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao salvar estatísticas do usuário:', e);
         }
     }
-
-    static loadUserStats(): UserStats | null {
+    static loadUserStats() {
         try {
             const saved = localStorage.getItem(this.KEYS.USER_STATS);
             return saved ? JSON.parse(saved) : null;
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao carregar estatísticas do usuário:', e);
             return null;
         }
     }
-
     // Theme
-    static saveTheme(theme: string): void {
+    static saveTheme(theme) {
         localStorage.setItem(this.KEYS.THEME, theme);
     }
-
-    static loadTheme(): string {
+    static loadTheme() {
         return localStorage.getItem(this.KEYS.THEME) || 'light';
     }
-
     // Export/Import
-    static exportAllData(): string {
+    static exportAllData() {
         return JSON.stringify({
             settings: this.loadSettings(),
             stats: this.loadStats(),
@@ -204,30 +186,47 @@ export class StorageService {
             exportDate: new Date().toISOString()
         }, null, 2);
     }
-
-    static importAllData(json: string): boolean {
+    static importAllData(json) {
         try {
             const data = JSON.parse(json);
-            
-            if (data.settings) this.saveSettings(data.settings);
-            if (data.stats) this.saveStats(data.stats);
-            if (data.history) this.saveHistory(data.history);
-            if (data.tasks) this.saveTasks(data.tasks);
-            if (data.goal) this.saveDailyGoal(data.goal);
-            if (data.achievements) this.saveAchievements(data.achievements);
-            if (data.userStats) this.saveUserStats(data.userStats);
-            if (data.theme) this.saveTheme(data.theme);
-            
+            if (data.settings)
+                this.saveSettings(data.settings);
+            if (data.stats)
+                this.saveStats(data.stats);
+            if (data.history)
+                this.saveHistory(data.history);
+            if (data.tasks)
+                this.saveTasks(data.tasks);
+            if (data.goal)
+                this.saveDailyGoal(data.goal);
+            if (data.achievements)
+                this.saveAchievements(data.achievements);
+            if (data.userStats)
+                this.saveUserStats(data.userStats);
+            if (data.theme)
+                this.saveTheme(data.theme);
             return true;
-        } catch (e) {
+        }
+        catch (e) {
             Logger.error('Erro ao importar dados:', e);
             return false;
         }
     }
-
-    static clearAllData(): void {
+    static clearAllData() {
         Object.values(this.KEYS).forEach(key => {
             localStorage.removeItem(key);
         });
     }
 }
+StorageService.KEYS = {
+    SETTINGS: 'pomodoroSettings',
+    STATS: 'pomodoroStats',
+    SESSION_STATE: 'pomodoroSessionState',
+    HISTORY: 'pomodoroHistory',
+    TASKS: 'pomodoroTasks',
+    GOAL: 'pomodoroDailyGoal',
+    ACHIEVEMENTS: 'pomodoroAchievements',
+    USER_STATS: 'pomodoroUserStats',
+    THEME: 'pomodoroTheme'
+};
+//# sourceMappingURL=StorageService.js.map
