@@ -587,5 +587,41 @@ Adicionar modo de economia de bateria que reduz animações, atualizações e re
 
 ---
 
+### 33. **Remover setInterval Problemático de Performance**
+**Labels:** `bug`, `performance`, `critical`
+
+**Descrição:**
+Existe um `setInterval` rodando a cada 100ms no `index.html` que aplica cor aos círculos de progresso. Isso causa consumo desnecessário de CPU e problemas de performance.
+
+**Estimativa:** 30 minutos
+
+**Referência:** `issues/025-remover-setinterval-performance.md`
+
+---
+
+### 34. **Melhorar Navegação por Teclado e Acessibilidade**
+**Labels:** `enhancement`, `accessibility`, `a11y`, `ux`
+
+**Descrição:**
+Melhorar navegação por teclado, adicionar ARIA labels apropriados, melhorar contraste e garantir compatibilidade total com leitores de tela.
+
+**Estimativa:** 4-6 horas
+
+**Referência:** `issues/026-melhorar-acessibilidade-teclado.md`
+
+---
+
+### 35. **Otimizar Renderizações e Atualizações do DOM**
+**Labels:** `enhancement`, `performance`, `optimization`
+
+**Descrição:**
+Otimizar atualizações do DOM para reduzir re-renderizações desnecessárias, usar `requestAnimationFrame`, adicionar debounce/throttle e melhorar performance geral.
+
+**Estimativa:** 1 dia
+
+**Referência:** `issues/027-otimizar-renderizacao-dom.md`
+
+---
+
 **Última atualização:** 2024
-**Total de issues sugeridas:** 32
+**Total de issues sugeridas:** 35

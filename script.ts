@@ -1,3 +1,29 @@
+// Sistema de logging condicional
+class Logger {
+    private static isDev = 
+        typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || 
+         window.location.hostname === '127.0.0.1' ||
+         window.location.hostname.includes('localhost'));
+
+    static log(...args: any[]): void {
+        if (this.isDev) {
+            console.log('[Pomodoro]', ...args);
+        }
+    }
+
+    static error(...args: any[]): void {
+        // Erros sempre logados para debug, mas formatados
+        console.error('[Pomodoro Error]', ...args);
+    }
+
+    static warn(...args: any[]): void {
+        if (this.isDev) {
+            console.warn('[Pomodoro]', ...args);
+        }
+    }
+}
+
 // Tipos e Interfaces
 type SessionType = 'work' | 'shortBreak' | 'longBreak';
 type Theme = 'light' | 'dark';
@@ -676,7 +702,7 @@ class PomodoroTimer {
                 localStorage.removeItem('pomodoroSessionState');
             }
         } catch (e) {
-            console.error('Erro ao carregar estado da sessão:', e);
+            Logger.error('Erro ao carregar estado da sessão:', e);
             localStorage.removeItem('pomodoroSessionState');
         }
     }
@@ -701,7 +727,7 @@ class PomodoroTimer {
                 this.longBreak = settings.longBreak || 15;
                 this.soundEnabled = settings.soundEnabled !== undefined ? settings.soundEnabled : true;
             } catch (e) {
-                console.error('Erro ao carregar configurações:', e);
+                Logger.error('Erro ao carregar configurações:', e);
             }
         }
 
@@ -733,7 +759,7 @@ class PomodoroTimer {
                 this.totalTime = stats.totalTime || 0;
                 this.sessionCount = stats.sessionCount || 0;
             } catch (e) {
-                console.error('Erro ao carregar estatísticas:', e);
+                Logger.error('Erro ao carregar estatísticas:', e);
             }
         }
         this.updateStats();

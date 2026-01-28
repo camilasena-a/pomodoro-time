@@ -412,11 +412,6 @@ class PomodoroTimer {
         if (progressCircleBg) {
             progressCircleBg.style.stroke = '#FF6347';
         }
-        
-        // Debug temporário - remover depois
-        if (this.isRunning) {
-            console.log(`⏱️ Tempo total: ${totalTime}s | Tempo restante: ${this.currentTime}s | Tempo decorrido: ${elapsed}s | Progresso: ${(progress * 100).toFixed(1)}% | Offset: ${offset.toFixed(0)}/${circumference.toFixed(0)}`);
-        }
     }
 
     getTotalTimeForCurrentSession() {
@@ -583,7 +578,7 @@ class PomodoroTimer {
                 localStorage.removeItem('pomodoroSessionState');
             }
         } catch (e) {
-            console.error('Erro ao carregar estado da sessão:', e);
+            // Erro ao carregar estado da sessão - silenciosamente limpar
             localStorage.removeItem('pomodoroSessionState');
         }
     }

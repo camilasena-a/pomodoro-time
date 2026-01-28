@@ -37,6 +37,7 @@ Este diretório contém templates e descrições detalhadas de issues para o pro
 - `002-remover-codigo-debug.md`
 - `003-configurar-cicd.md`
 - `004-validacao-dados.md`
+- `025-remover-setinterval-performance.md` ⚠️ **CRÍTICO**
 
 ### 🟡 Média Prioridade
 - `005-modo-foco.md`
@@ -49,6 +50,8 @@ Este diretório contém templates e descrições detalhadas de issues para o pro
 - `019-dark-mode-automatico.md`
 - `020-wake-lock-api.md`
 - `023-testes-e2e.md`
+- `026-melhorar-acessibilidade-teclado.md`
+- `027-otimizar-renderizacao-dom.md`
 
 ### 🟢 Baixa Prioridade
 - `011-eslint-prettier.md`
