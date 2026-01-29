@@ -5,7 +5,14 @@ const urlsToCache = [
   '/index.html',
   '/styles.css',
   '/script.js',
-  '/manifest.json'
+  '/manifest.json',
+  // Ícones
+  '/favicon-16x16.png',
+  '/favicon-32x32.png',
+  '/favicon.ico',
+  '/apple-touch-icon.png',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 // Instalar Service Worker
@@ -48,8 +55,8 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data ? event.data.text() : 'Nova notificação',
-    icon: '🍅',
-    badge: '🍅',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
     vibrate: [200, 100, 200],
     tag: 'pomodoro-notification'
   };

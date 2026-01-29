@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "generate-icons": "node generate-icons.js"
   },
   "keywords": [
     "pomodoro",

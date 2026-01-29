@@ -623,5 +623,27 @@ Otimizar atualizações do DOM para reduzir re-renderizações desnecessárias, 
 
 ---
 
+---
+
+## 📌 Issues Adicionais Identificadas
+
+### 36-50. **Novas Issues Adicionais**
+**Labels:** `bug`, `enhancement`, `documentation`, `pwa`, `security`
+
+Foram identificadas **15 issues adicionais** durante análise detalhada do código que não foram cobertas nas issues anteriores.
+
+**Ver documento completo:** `issues/028-issues-adicionais.md`
+
+**Principais issues identificadas:**
+- 🔴 Ícones do PWA não existem (crítico)
+- 🔴 Service Worker sem versionamento adequado
+- 🔴 CDN do Chart.js sem fallback
+- 🔴 Falta de tratamento para LocalStorage desabilitado
+- 🟡 Falta de scripts de desenvolvimento
+- 🟡 package.json sem informações de repositório
+- E mais 9 issues...
+
+---
+
 **Última atualização:** 2024
-**Total de issues sugeridas:** 35
+**Total de issues sugeridas:** 50 (35 originais + 15 adicionais)
