@@ -1,6 +1,10 @@
 /**
  * Componente para criar gráficos usando Chart.js
  */
+
+// Declaração de tipo para Chart.js (carregado via CDN)
+declare const Chart: any;
+
 export class ChartComponent {
     private chart: any = null;
     private canvas: HTMLCanvasElement | null = null;
@@ -10,10 +14,25 @@ export class ChartComponent {
     }
 
     createWeeklyChart(data: { date: string; pomodoros: number; time: number }[]): void {
-        if (!this.canvas || typeof Chart === 'undefined') return;
+        if (!this.canvas) {
+            console.warn('Canvas não encontrado para gráfico semanal');
+            return;
+        }
+        
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js não está disponível. Aguardando carregamento...');
+            // Aguardar até Chart.js estar disponível
+            window.addEventListener('chartjs-loaded', () => {
+                this.createWeeklyChart(data);
+            }, { once: true });
+            return;
+        }
 
         const ctx = this.canvas.getContext('2d');
-        if (!ctx) return;
+        if (!ctx) {
+            console.warn('Não foi possível obter contexto 2D do canvas');
+            return;
+        }
 
         // Destruir gráfico anterior se existir
         if (this.chart) {
@@ -67,10 +86,25 @@ export class ChartComponent {
     }
 
     createMonthlyChart(data: { date: string; pomodoros: number; time: number }[]): void {
-        if (!this.canvas || typeof Chart === 'undefined') return;
+        if (!this.canvas) {
+            console.warn('Canvas não encontrado para gráfico mensal');
+            return;
+        }
+        
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js não está disponível. Aguardando carregamento...');
+            // Aguardar até Chart.js estar disponível
+            window.addEventListener('chartjs-loaded', () => {
+                this.createMonthlyChart(data);
+            }, { once: true });
+            return;
+        }
 
         const ctx = this.canvas.getContext('2d');
-        if (!ctx) return;
+        if (!ctx) {
+            console.warn('Não foi possível obter contexto 2D do canvas');
+            return;
+        }
 
         if (this.chart) {
             this.chart.destroy();

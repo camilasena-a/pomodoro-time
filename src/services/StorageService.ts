@@ -4,6 +4,7 @@ import { validateSettings, sanitizeSettings } from '../utils/validationUtils';
 
 /**
  * Serviço para gerenciar armazenamento no LocalStorage
+ * Com fallback para armazenamento em memória quando LocalStorage não está disponível
  */
 export class StorageService {
     private static readonly KEYS = {
@@ -18,10 +19,173 @@ export class StorageService {
         THEME: 'pomodoroTheme'
     };
 
+    // Fallback: armazenamento em memória quando LocalStorage não está disponível
+    private static memoryStorage: Map<string, string> = new Map();
+    private static storageAvailable: boolean | null = null;
+    private static storageWarningShown: boolean = false;
+
+    /**
+     * Verifica se LocalStorage está disponível e funcional
+     */
+    private static isStorageAvailable(): boolean {
+        if (this.storageAvailable !== null) {
+            return this.storageAvailable;
+        }
+
+        try {
+            const testKey = '__pomodoro_storage_test__';
+            localStorage.setItem(testKey, 'test');
+            localStorage.removeItem(testKey);
+            this.storageAvailable = true;
+            return true;
+        } catch (e) {
+            // LocalStorage não está disponível (modo privado, desabilitado, quota excedida, etc.)
+            this.storageAvailable = false;
+            
+            // Mostrar aviso ao usuário apenas uma vez
+            if (!this.storageWarningShown) {
+                this.storageWarningShown = true;
+                this.showStorageWarning();
+            }
+            
+            return false;
+        }
+    }
+
+    /**
+     * Mostra aviso ao usuário sobre LocalStorage não disponível
+     */
+    private static showStorageWarning(): void {
+        // Aguardar DOM estar pronto
+        if (typeof document !== 'undefined') {
+            setTimeout(() => {
+                const warning = document.createElement('div');
+                warning.id = 'storage-warning';
+                warning.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #FFA500;
+                    color: #000;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    z-index: 10000;
+                    max-width: 350px;
+                    font-size: 14px;
+                    line-height: 1.5;
+                `;
+                warning.innerHTML = `
+                    <strong>⚠️ Armazenamento Local Desabilitado</strong><br>
+                    Seus dados não serão salvos permanentemente. 
+                    Para salvar suas configurações e estatísticas, 
+                    habilite o armazenamento local no seu navegador.
+                    <button id="close-storage-warning" style="
+                        margin-top: 10px;
+                        padding: 5px 10px;
+                        background: #000;
+                        color: #fff;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    ">Entendi</button>
+                `;
+                
+                document.body.appendChild(warning);
+                
+                const closeBtn = warning.querySelector('#close-storage-warning');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        warning.remove();
+                    });
+                }
+                
+                // Remover automaticamente após 10 segundos
+                setTimeout(() => {
+                    if (warning.parentNode) {
+                        warning.remove();
+                    }
+                }, 10000);
+            }, 1000);
+        }
+    }
+
+    /**
+     * Obtém valor do storage (LocalStorage ou memória)
+     */
+    private static getItem(key: string): string | null {
+        if (this.isStorageAvailable()) {
+            try {
+                return localStorage.getItem(key);
+            } catch (e) {
+                Logger.error('Erro ao ler do LocalStorage:', e);
+                // Fallback para memória em caso de erro
+                return this.memoryStorage.get(key) || null;
+            }
+        }
+        return this.memoryStorage.get(key) || null;
+    }
+
+    /**
+     * Define valor no storage (LocalStorage ou memória)
+     */
+    private static setItem(key: string, value: string): boolean {
+        if (this.isStorageAvailable()) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (e: any) {
+                // Tratar erro de quota excedida
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    Logger.warn('Quota do LocalStorage excedida. Limpando dados antigos...');
+                    // Tentar limpar dados antigos e tentar novamente
+                    try {
+                        // Limpar histórico antigo (manter apenas últimos 100 registros)
+                        const history = this.loadHistory();
+                        if (history.length > 100) {
+                            this.saveHistory(history.slice(-100));
+                            localStorage.setItem(key, value);
+                            return true;
+                        }
+                    } catch (e2) {
+                        Logger.error('Erro ao limpar dados antigos:', e2);
+                    }
+                    
+                    // Se ainda falhar, usar memória
+                    this.memoryStorage.set(key, value);
+                    return false;
+                }
+                Logger.error('Erro ao escrever no LocalStorage:', e);
+                // Fallback para memória
+                this.memoryStorage.set(key, value);
+                return false;
+            }
+        }
+        this.memoryStorage.set(key, value);
+        return false;
+    }
+
+    /**
+     * Remove item do storage
+     */
+    private static removeItem(key: string): void {
+        if (this.isStorageAvailable()) {
+            try {
+                localStorage.removeItem(key);
+            } catch (e) {
+                Logger.error('Erro ao remover do LocalStorage:', e);
+            }
+        }
+        this.memoryStorage.delete(key);
+    }
+
     // Settings
     static saveSettings(settings: PomodoroSettings): void {
         try {
-            localStorage.setItem(this.KEYS.SETTINGS, JSON.stringify(settings));
+            const saved = this.setItem(this.KEYS.SETTINGS, JSON.stringify(settings));
+            if (!saved && this.isStorageAvailable()) {
+                Logger.warn('Configurações salvas apenas em memória devido a erro no LocalStorage');
+            }
         } catch (e) {
             Logger.error('Erro ao salvar configurações:', e);
         }
@@ -29,7 +193,7 @@ export class StorageService {
 
     static loadSettings(): PomodoroSettings | null {
         try {
-            const saved = localStorage.getItem(this.KEYS.SETTINGS);
+            const saved = this.getItem(this.KEYS.SETTINGS);
             return saved ? JSON.parse(saved) : null;
         } catch (e) {
             Logger.error('Erro ao carregar configurações:', e);
@@ -40,7 +204,7 @@ export class StorageService {
     // Stats
     static saveStats(stats: PomodoroStats): void {
         try {
-            localStorage.setItem(this.KEYS.STATS, JSON.stringify(stats));
+            this.setItem(this.KEYS.STATS, JSON.stringify(stats));
         } catch (e) {
             Logger.error('Erro ao salvar estatísticas:', e);
         }
@@ -48,7 +212,7 @@ export class StorageService {
 
     static loadStats(): PomodoroStats | null {
         try {
-            const saved = localStorage.getItem(this.KEYS.STATS);
+            const saved = this.getItem(this.KEYS.STATS);
             return saved ? JSON.parse(saved) : null;
         } catch (e) {
             Logger.error('Erro ao carregar estatísticas:', e);
@@ -59,7 +223,7 @@ export class StorageService {
     // Session State
     static saveSessionState(state: SessionState): void {
         try {
-            localStorage.setItem(this.KEYS.SESSION_STATE, JSON.stringify(state));
+            this.setItem(this.KEYS.SESSION_STATE, JSON.stringify(state));
         } catch (e) {
             Logger.error('Erro ao salvar estado da sessão:', e);
         }
@@ -67,7 +231,7 @@ export class StorageService {
 
     static loadSessionState(): SessionState | null {
         try {
-            const saved = localStorage.getItem(this.KEYS.SESSION_STATE);
+            const saved = this.getItem(this.KEYS.SESSION_STATE);
             return saved ? JSON.parse(saved) : null;
         } catch (e) {
             Logger.error('Erro ao carregar estado da sessão:', e);
@@ -76,7 +240,7 @@ export class StorageService {
     }
 
     static clearSessionState(): void {
-        localStorage.removeItem(this.KEYS.SESSION_STATE);
+        this.removeItem(this.KEYS.SESSION_STATE);
     }
 
     // History
@@ -84,7 +248,7 @@ export class StorageService {
         try {
             // Manter apenas últimos 1000 registros para não exceder limite do localStorage
             const limitedHistory = history.slice(-1000);
-            localStorage.setItem(this.KEYS.HISTORY, JSON.stringify(limitedHistory));
+            this.setItem(this.KEYS.HISTORY, JSON.stringify(limitedHistory));
         } catch (e) {
             Logger.error('Erro ao salvar histórico:', e);
         }
@@ -92,7 +256,7 @@ export class StorageService {
 
     static loadHistory(): SessionHistory[] {
         try {
-            const saved = localStorage.getItem(this.KEYS.HISTORY);
+            const saved = this.getItem(this.KEYS.HISTORY);
             return saved ? JSON.parse(saved) : [];
         } catch (e) {
             Logger.error('Erro ao carregar histórico:', e);
@@ -109,7 +273,7 @@ export class StorageService {
     // Tasks
     static saveTasks(tasks: Task[]): void {
         try {
-            localStorage.setItem(this.KEYS.TASKS, JSON.stringify(tasks));
+            this.setItem(this.KEYS.TASKS, JSON.stringify(tasks));
         } catch (e) {
             Logger.error('Erro ao salvar tarefas:', e);
         }
@@ -117,7 +281,7 @@ export class StorageService {
 
     static loadTasks(): Task[] {
         try {
-            const saved = localStorage.getItem(this.KEYS.TASKS);
+            const saved = this.getItem(this.KEYS.TASKS);
             return saved ? JSON.parse(saved) : [];
         } catch (e) {
             Logger.error('Erro ao carregar tarefas:', e);
@@ -128,7 +292,7 @@ export class StorageService {
     // Daily Goal
     static saveDailyGoal(goal: DailyGoal): void {
         try {
-            localStorage.setItem(this.KEYS.GOAL, JSON.stringify(goal));
+            this.setItem(this.KEYS.GOAL, JSON.stringify(goal));
         } catch (e) {
             Logger.error('Erro ao salvar meta diária:', e);
         }
@@ -136,7 +300,7 @@ export class StorageService {
 
     static loadDailyGoal(): DailyGoal | null {
         try {
-            const saved = localStorage.getItem(this.KEYS.GOAL);
+            const saved = this.getItem(this.KEYS.GOAL);
             return saved ? JSON.parse(saved) : null;
         } catch (e) {
             Logger.error('Erro ao carregar meta diária:', e);
@@ -147,7 +311,7 @@ export class StorageService {
     // Achievements
     static saveAchievements(achievements: Achievement[]): void {
         try {
-            localStorage.setItem(this.KEYS.ACHIEVEMENTS, JSON.stringify(achievements));
+            this.setItem(this.KEYS.ACHIEVEMENTS, JSON.stringify(achievements));
         } catch (e) {
             Logger.error('Erro ao salvar conquistas:', e);
         }
@@ -155,7 +319,7 @@ export class StorageService {
 
     static loadAchievements(): Achievement[] {
         try {
-            const saved = localStorage.getItem(this.KEYS.ACHIEVEMENTS);
+            const saved = this.getItem(this.KEYS.ACHIEVEMENTS);
             return saved ? JSON.parse(saved) : [];
         } catch (e) {
             Logger.error('Erro ao carregar conquistas:', e);
@@ -166,7 +330,7 @@ export class StorageService {
     // User Stats (XP, Level)
     static saveUserStats(stats: UserStats): void {
         try {
-            localStorage.setItem(this.KEYS.USER_STATS, JSON.stringify(stats));
+            this.setItem(this.KEYS.USER_STATS, JSON.stringify(stats));
         } catch (e) {
             Logger.error('Erro ao salvar estatísticas do usuário:', e);
         }
@@ -174,7 +338,7 @@ export class StorageService {
 
     static loadUserStats(): UserStats | null {
         try {
-            const saved = localStorage.getItem(this.KEYS.USER_STATS);
+            const saved = this.getItem(this.KEYS.USER_STATS);
             return saved ? JSON.parse(saved) : null;
         } catch (e) {
             Logger.error('Erro ao carregar estatísticas do usuário:', e);
@@ -184,11 +348,11 @@ export class StorageService {
 
     // Theme
     static saveTheme(theme: string): void {
-        localStorage.setItem(this.KEYS.THEME, theme);
+        this.setItem(this.KEYS.THEME, theme);
     }
 
     static loadTheme(): string {
-        return localStorage.getItem(this.KEYS.THEME) || 'light';
+        return this.getItem(this.KEYS.THEME) || 'light';
     }
 
     // Export/Import
@@ -282,7 +446,14 @@ export class StorageService {
 
     static clearAllData(): void {
         Object.values(this.KEYS).forEach(key => {
-            localStorage.removeItem(key);
+            this.removeItem(key);
         });
+    }
+
+    /**
+     * Verifica se o storage está disponível (público para uso externo)
+     */
+    static isAvailable(): boolean {
+        return this.isStorageAvailable();
     }
 }

@@ -243,16 +243,101 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Carregar Chart.js com fallback
+        let chartJsLoaded = false;
+        let chartJsLoadAttempts = 0;
+        const maxLoadAttempts = 2;
+        
+        function loadChartJs() {
+            chartJsLoadAttempts++;
+            
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.async = true;
+            
+            // Tentar CDN principal primeiro
+            if (chartJsLoadAttempts === 1) {
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+            } 
+            // Fallback para CDN alternativo
+            else if (chartJsLoadAttempts === 2) {
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+            }
+            // Último fallback: unpkg
+            else {
+                script.src = 'https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js';
+            }
+            
+            script.onload = function() {
+                chartJsLoaded = true;
+                // Verificar se Chart está disponível
+                if (typeof Chart !== 'undefined') {
+                    console.log('Chart.js carregado com sucesso');
+                    // Disparar evento customizado para notificar que Chart.js está pronto
+                    window.dispatchEvent(new CustomEvent('chartjs-loaded'));
+                } else {
+                    handleChartJsError();
+                }
+            };
+            
+            script.onerror = function() {
+                if (chartJsLoadAttempts < maxLoadAttempts + 1) {
+                    // Tentar próximo CDN
+                    loadChartJs();
+                } else {
+                    handleChartJsError();
+                }
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        function handleChartJsError() {
+            console.warn('Chart.js não pôde ser carregado. A funcionalidade de gráficos estará desabilitada.');
+            chartJsLoaded = false;
+            
+            // Mostrar mensagem amigável ao usuário
+            const historyModal = document.getElementById('history-modal');
+            if (historyModal) {
+                const modalBody = historyModal.querySelector('.modal-body');
+                if (modalBody) {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'chart-error-message';
+                    errorMsg.style.cssText = 'padding: 20px; text-align: center; color: #E74C3C;';
+                    errorMsg.innerHTML = `
+                        <p style="margin: 10px 0;">⚠️ Não foi possível carregar a biblioteca de gráficos.</p>
+                        <p style="margin: 10px 0; font-size: 14px; color: #666;">
+                            Verifique sua conexão com a internet ou tente recarregar a página.
+                        </p>
+                    `;
+                    modalBody.insertBefore(errorMsg, modalBody.firstChild);
+                }
+            }
+            
+            // Disparar evento para notificar falha
+            window.dispatchEvent(new CustomEvent('chartjs-error'));
+        }
+        
+        // Iniciar carregamento do Chart.js
+        loadChartJs();
+    </script>
     <script src="script.js"></script>
     <script>
         // Registrar Service Worker para PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registrado com sucesso:', registration.scope);
+                        
+                        // Verificar atualizações periodicamente
+                        setInterval(() => {
+                            registration.update();
+                        }, 60000); // Verificar a cada minuto
+                    })
                     .catch((error) => {
-                        // Service Worker falhou ao registrar (silenciosamente)
-                        // Em produção, considerar logging condicional
+                        console.error('Service Worker falhou ao registrar:', error);
                     });
             });
         }

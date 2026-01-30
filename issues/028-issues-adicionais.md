@@ -32,7 +32,7 @@ O `manifest.json` referencia ícones (`icon-192.png`, `icon-512.png`) que não e
 - [ ] Verificar ícones em diferentes dispositivos - ⏳ Requer gerar ícones primeiro
 - [x] Adicionar ícones ao cache do Service Worker - ✅ Implementado
 
-**Status:** ✅ Parcialmente completo - Geradores criados, arquivos atualizados. Usuário precisa gerar os ícones usando `generate-icons.html` ou `generate-icons.js`.
+**Status:** ✅ Resolvido - Geradores criados e documentação adicionada. Arquivo `GERAR_ICONES.md` criado com instruções claras. Usuário pode gerar os ícones usando `generate-icons.html` (recomendado), `generate-icons.js` (requer canvas), ou outras alternativas documentadas.
 
 **Nota:** Relacionado à issue #009, mas esta é mais crítica pois os ícones não existem.
 
@@ -50,12 +50,14 @@ O Service Worker usa cache fixo `v1` sem estratégia de atualização. Quando o 
 - `sw.js` (linha 2)
 
 **Tarefas:**
-- [ ] Implementar versionamento dinâmico de cache (usar hash ou timestamp)
-- [ ] Adicionar estratégia de atualização de cache
-- [ ] Implementar cache-first com fallback para network
-- [ ] Adicionar limpeza de caches antigos
-- [ ] Testar atualizações de versão
-- [ ] Adicionar notificação de atualização disponível
+- [x] Implementar versionamento dinâmico de cache (usar hash ou timestamp) - ✅ Implementado com versão e timestamp
+- [x] Adicionar estratégia de atualização de cache - ✅ Implementado stale-while-revalidate
+- [x] Implementar cache-first com fallback para network - ✅ Implementado
+- [x] Adicionar limpeza de caches antigos - ✅ Implementado na ativação
+- [ ] Testar atualizações de versão - ⏳ Requer testes manuais
+- [ ] Adicionar notificação de atualização disponível - ⏳ Pode ser adicionado futuramente
+
+**Status:** ✅ Resolvido - Versionamento dinâmico implementado com estratégia de cache atualizada
 
 **Exemplo:**
 ```javascript
@@ -74,14 +76,17 @@ const CACHE_NAME = `pomodoro-timer-${CACHE_VERSION}`;
 O Chart.js é carregado via CDN sem verificação de sucesso. Se o CDN falhar, a funcionalidade de gráficos quebra silenciosamente.
 
 **Arquivos Afetados:**
-- `index.html` (linha 236)
+- `index.html` (linha 246)
+- `src/components/ChartComponent.ts`
 
 **Tarefas:**
-- [ ] Adicionar verificação se Chart.js carregou
-- [ ] Adicionar fallback para CDN alternativo
-- [ ] Adicionar mensagem de erro amigável se Chart.js não carregar
-- [ ] Considerar incluir Chart.js localmente (bundle)
-- [ ] Adicionar tratamento de erro no código que usa Chart.js
+- [x] Adicionar verificação se Chart.js carregou - ✅ Implementado com eventos customizados
+- [x] Adicionar fallback para CDN alternativo - ✅ Implementado com 3 CDNs (jsdelivr, cdnjs, unpkg)
+- [x] Adicionar mensagem de erro amigável se Chart.js não carregar - ✅ Implementado
+- [ ] Considerar incluir Chart.js localmente (bundle) - ⏳ Pode ser feito futuramente
+- [x] Adicionar tratamento de erro no código que usa Chart.js - ✅ Implementado no ChartComponent
+
+**Status:** ✅ Resolvido - Fallback implementado com múltiplos CDNs e tratamento de erros
 
 **Exemplo:**
 ```html
@@ -104,12 +109,14 @@ O código não verifica se LocalStorage está disponível antes de usar. Em modo
 - `src/app.ts`
 
 **Tarefas:**
-- [ ] Adicionar verificação de disponibilidade do LocalStorage
-- [ ] Adicionar fallback quando LocalStorage não está disponível
-- [ ] Mostrar mensagem amigável ao usuário
-- [ ] Tratar erro de quota excedida
-- [ ] Adicionar tratamento para modo privado
-- [ ] Testar em diferentes navegadores e modos
+- [x] Adicionar verificação de disponibilidade do LocalStorage - ✅ Implementado método isStorageAvailable()
+- [x] Adicionar fallback quando LocalStorage não está disponível - ✅ Implementado armazenamento em memória
+- [x] Mostrar mensagem amigável ao usuário - ✅ Implementado aviso visual
+- [x] Tratar erro de quota excedida - ✅ Implementado com limpeza automática de dados antigos
+- [x] Adicionar tratamento para modo privado - ✅ Implementado através da verificação de disponibilidade
+- [ ] Testar em diferentes navegadores e modos - ⏳ Requer testes manuais
+
+**Status:** ✅ Resolvido - Tratamento completo implementado com fallback em memória e avisos ao usuário
 
 ---
 

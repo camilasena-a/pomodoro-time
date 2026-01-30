@@ -8,11 +8,23 @@ export class ChartComponent {
         this.canvas = document.getElementById(canvasId);
     }
     createWeeklyChart(data) {
-        if (!this.canvas || typeof Chart === 'undefined')
+        if (!this.canvas) {
+            console.warn('Canvas não encontrado para gráfico semanal');
             return;
+        }
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js não está disponível. Aguardando carregamento...');
+            // Aguardar até Chart.js estar disponível
+            window.addEventListener('chartjs-loaded', () => {
+                this.createWeeklyChart(data);
+            }, { once: true });
+            return;
+        }
         const ctx = this.canvas.getContext('2d');
-        if (!ctx)
+        if (!ctx) {
+            console.warn('Não foi possível obter contexto 2D do canvas');
             return;
+        }
         // Destruir gráfico anterior se existir
         if (this.chart) {
             this.chart.destroy();
@@ -62,11 +74,23 @@ export class ChartComponent {
         });
     }
     createMonthlyChart(data) {
-        if (!this.canvas || typeof Chart === 'undefined')
+        if (!this.canvas) {
+            console.warn('Canvas não encontrado para gráfico mensal');
             return;
+        }
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js não está disponível. Aguardando carregamento...');
+            // Aguardar até Chart.js estar disponível
+            window.addEventListener('chartjs-loaded', () => {
+                this.createMonthlyChart(data);
+            }, { once: true });
+            return;
+        }
         const ctx = this.canvas.getContext('2d');
-        if (!ctx)
+        if (!ctx) {
+            console.warn('Não foi possível obter contexto 2D do canvas');
             return;
+        }
         if (this.chart) {
             this.chart.destroy();
         }
