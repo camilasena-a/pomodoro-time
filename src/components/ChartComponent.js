@@ -1,6 +1,7 @@
 /**
  * Componente para criar gráficos usando Chart.js
  */
+import { Logger } from '../utils/Logger';
 export class ChartComponent {
     constructor(canvasId) {
         this.chart = null;
@@ -9,11 +10,11 @@ export class ChartComponent {
     }
     createWeeklyChart(data) {
         if (!this.canvas) {
-            console.warn('Canvas não encontrado para gráfico semanal');
+            Logger.warn('Canvas não encontrado para gráfico semanal');
             return;
         }
         if (typeof Chart === 'undefined') {
-            console.warn('Chart.js não está disponível. Aguardando carregamento...');
+            Logger.warn('Chart.js não está disponível. Aguardando carregamento...');
             // Aguardar até Chart.js estar disponível
             window.addEventListener('chartjs-loaded', () => {
                 this.createWeeklyChart(data);
@@ -22,7 +23,7 @@ export class ChartComponent {
         }
         const ctx = this.canvas.getContext('2d');
         if (!ctx) {
-            console.warn('Não foi possível obter contexto 2D do canvas');
+            Logger.warn('Não foi possível obter contexto 2D do canvas');
             return;
         }
         // Destruir gráfico anterior se existir
@@ -75,11 +76,11 @@ export class ChartComponent {
     }
     createMonthlyChart(data) {
         if (!this.canvas) {
-            console.warn('Canvas não encontrado para gráfico mensal');
+            Logger.warn('Canvas não encontrado para gráfico mensal');
             return;
         }
         if (typeof Chart === 'undefined') {
-            console.warn('Chart.js não está disponível. Aguardando carregamento...');
+            Logger.warn('Chart.js não está disponível. Aguardando carregamento...');
             // Aguardar até Chart.js estar disponível
             window.addEventListener('chartjs-loaded', () => {
                 this.createMonthlyChart(data);
@@ -88,7 +89,7 @@ export class ChartComponent {
         }
         const ctx = this.canvas.getContext('2d');
         if (!ctx) {
-            console.warn('Não foi possível obter contexto 2D do canvas');
+            Logger.warn('Não foi possível obter contexto 2D do canvas');
             return;
         }
         if (this.chart) {

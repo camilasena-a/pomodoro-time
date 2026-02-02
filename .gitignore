@@ -5,6 +5,12 @@ node_modules/
 .DS_Store
 dist/
 
+# Ignorar arquivos JavaScript compilados do TypeScript (exceto script.js na raiz)
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.d.ts.map
+
 # Manter script.js no repositório (necessário para GitHub Pages)
-# Não ignorar script.js
+# Não ignorar script.js na raiz
 !script.js

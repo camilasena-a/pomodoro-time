@@ -273,7 +273,15 @@
                 chartJsLoaded = true;
                 // Verificar se Chart está disponível
                 if (typeof Chart !== 'undefined') {
-                    console.log('Chart.js carregado com sucesso');
+                    // Log apenas em desenvolvimento
+                    const isDev = window.location.hostname === 'localhost' || 
+                                 window.location.hostname === '127.0.0.1' ||
+                                 window.location.hostname.includes('localhost');
+                    if (isDev && typeof Logger !== 'undefined') {
+                        Logger.log('Chart.js carregado com sucesso');
+                    } else if (isDev) {
+                        console.log('Chart.js carregado com sucesso');
+                    }
                     // Disparar evento customizado para notificar que Chart.js está pronto
                     window.dispatchEvent(new CustomEvent('chartjs-loaded'));
                 } else {
@@ -294,7 +302,15 @@
         }
         
         function handleChartJsError() {
-            console.warn('Chart.js não pôde ser carregado. A funcionalidade de gráficos estará desabilitada.');
+            // Log apenas em desenvolvimento
+            const isDev = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost');
+            if (isDev && typeof Logger !== 'undefined') {
+                Logger.warn('Chart.js não pôde ser carregado. A funcionalidade de gráficos estará desabilitada.');
+            } else if (isDev) {
+                console.warn('Chart.js não pôde ser carregado. A funcionalidade de gráficos estará desabilitada.');
+            }
             chartJsLoaded = false;
             
             // Mostrar mensagem amigável ao usuário
@@ -329,7 +345,15 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then((registration) => {
-                        console.log('Service Worker registrado com sucesso:', registration.scope);
+                        // Usar Logger se disponível, caso contrário logar apenas em desenvolvimento
+                        const isDev = window.location.hostname === 'localhost' || 
+                                     window.location.hostname === '127.0.0.1' ||
+                                     window.location.hostname.includes('localhost');
+                        if (isDev && typeof Logger !== 'undefined') {
+                            Logger.log('Service Worker registrado com sucesso:', registration.scope);
+                        } else if (isDev) {
+                            console.log('Service Worker registrado com sucesso:', registration.scope);
+                        }
                         
                         // Verificar atualizações periodicamente
                         setInterval(() => {
@@ -337,7 +361,12 @@
                         }, 60000); // Verificar a cada minuto
                     })
                     .catch((error) => {
-                        console.error('Service Worker falhou ao registrar:', error);
+                        // Erros sempre devem ser logados
+                        if (typeof Logger !== 'undefined') {
+                            Logger.error('Service Worker falhou ao registrar:', error);
+                        } else {
+                            console.error('Service Worker falhou ao registrar:', error);
+                        }
                     });
             });
         }

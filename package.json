@@ -7,15 +7,29 @@
     "build": "tsc",
     "watch": "tsc --watch",
     "dev": "tsc --watch",
-    "generate-icons": "node generate-icons.js"
+    "generate-icons": "node generate-icons.js",
+    "clean": "del /q /s src\\**\\*.js src\\**\\*.js.map src\\**\\*.d.ts src\\**\\*.d.ts.map 2>nul & del /q script.d.ts script.d.ts.map script.js.map 2>nul || echo Cleaned",
+    "start": "npm run build && npx http-server . -p 8080 -o",
+    "serve": "npx http-server . -p 8080 -o",
+    "preview": "npm run build && npx http-server . -p 8080 -o"
   },
   "keywords": [
     "pomodoro",
     "timer",
-    "productivity"
+    "productivity",
+    "pwa",
+    "typescript"
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/USER/pomodoro-time.git"
+  },
+  "bugs": {
+    "url": "https://github.com/USER/pomodoro-time/issues"
+  },
+  "homepage": "https://USER.github.io/pomodoro-time",
   "dependencies": {
     "chart.js": "^4.4.0"
   },
