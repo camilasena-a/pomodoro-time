@@ -8,7 +8,8 @@
     "watch": "tsc --watch",
     "dev": "tsc --watch",
     "generate-icons": "node generate-icons.js",
-    "clean": "del /q /s src\\**\\*.js src\\**\\*.js.map src\\**\\*.d.ts src\\**\\*.d.ts.map 2>nul & del /q script.d.ts script.d.ts.map script.js.map 2>nul || echo Cleaned",
+    "clean": "node scripts/clean.js",
+    "type-check": "tsc --noEmit",
     "start": "npm run build && npx http-server . -p 8080 -o",
     "serve": "npx http-server . -p 8080 -o",
     "preview": "npm run build && npx http-server . -p 8080 -o"

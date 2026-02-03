@@ -96,17 +96,23 @@ npm install
 # Compilar TypeScript
 npm run build
 
+# Verificar tipos sem compilar
+npm run type-check
+
 # Modo watch (desenvolvimento)
 npm run watch
 # ou
 npm run dev
 
-# Iniciar servidor local
+# Iniciar servidor local (compila e serve)
 npm start
 # ou apenas servir arquivos
 npm run serve
 
-# Limpar arquivos compilados
+# Preview da build
+npm run preview
+
+# Limpar arquivos compilados (multiplataforma)
 npm run clean
 
 # Gerar ícones do PWA
@@ -160,6 +166,31 @@ A técnica Pomodoro consiste em:
 - **Service Worker** - Funcionalidade offline e PWA
 - **IndexedDB** - Armazenamento avançado (futuro)
 
+## 📁 Estrutura do Projeto
+
+```
+pomodoro-time/
+├── src/                    # Código fonte TypeScript
+│   ├── components/         # Componentes reutilizáveis
+│   ├── services/           # Lógica de negócio e serviços
+│   ├── utils/              # Funções utilitárias
+│   └── types/              # Definições TypeScript
+├── scripts/                # Scripts de build e utilitários
+├── docs/                   # Documentação adicional
+├── issues/                 # Templates de issues
+├── index.html              # Página principal
+├── styles.css              # Estilos globais
+├── script.ts               # Entry point (compila para script.js)
+├── script.js               # Arquivo compilado (commitado para GitHub Pages)
+├── sw.js                   # Service Worker
+├── manifest.json           # Manifest do PWA
+├── tsconfig.json           # Configuração TypeScript
+├── package.json            # Dependências e scripts
+├── .editorconfig          # Configuração do editor
+├── .prettierrc.json       # Configuração Prettier
+└── README.md              # Este arquivo
+```
+
 ## 🌐 Requisitos do Navegador
 
 - Chrome/Edge 90+
@@ -180,6 +211,24 @@ A técnica Pomodoro consiste em:
 - O app funciona offline após a primeira visita (PWA)
 - Para usar em produção, hospede os arquivos em qualquer servidor web estático
 - O Service Worker atualiza automaticamente quando há novas versões
+
+## 🛠️ Ferramentas de Desenvolvimento
+
+O projeto inclui configurações para melhorar a experiência de desenvolvimento:
+
+- **EditorConfig** (`.editorconfig`) - Padronização de estilo de código
+- **Prettier** (`.prettierrc.json`) - Formatação automática de código
+- **TypeScript** - Tipagem estática e verificação de tipos
+- **VS Code** - Configurações recomendadas em `.vscode/`
+
+### Configuração Recomendada do VS Code
+
+Instale as extensões recomendadas:
+- ESLint
+- Prettier
+- TypeScript and JavaScript Language Features
+
+As configurações são carregadas automaticamente ao abrir o projeto.
 
 ## 🐛 Troubleshooting
 
